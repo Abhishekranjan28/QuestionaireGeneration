@@ -226,22 +226,28 @@ else:
         max_value=100,
         value=30,
     )
-    @st.cache_data
     def generate_pdf(questions):
-       pdf = FPDF()
-       pdf.add_page()
-       pdf.set_font("helvetica", size=12)
-       pdf.cell(200, 10, txt="Generated Questions", ln=True, align='C')
-       pdf.ln(10)
-    
-       for i, question in enumerate(questions, 1):
-          pdf.multi_cell(0, 10, f"{i}. {question}", ln=True)
-    
-       with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
-           pdf_output_path = tmp_file.name
-           pdf.output(pdf_output_path)
-    
-       return pdf_output_path
+        pdf = FPDF()
+        pdf.add_page()
+
+    # Add Roboto font (make sure Roboto-Regular.ttf and Roboto-Bold.ttf are in the same directory)
+        pdf.add_font('Roboto', '', 'Roboto-Regular.ttf', uni=True)
+        pdf.add_font('Roboto-Bold', 'B', 'Roboto-Bold.ttf', uni=True)
+        pdf.set_font('Roboto', size=12)  # Set default font to Roboto
+
+        pdf.cell(200, 10, txt="Generated Questions", ln=True, align='C')
+        pdf.ln(10)
+
+    # Add questions to the PDF
+        for i, question in enumerate(questions, 1):
+           pdf.multi_cell(0, 10, f"{i}. {question}", ln=True)
+
+    # Save the PDF to a temporary file
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
+            pdf_output_path = tmp_file.name
+            pdf.output(pdf_output_path)
+
+        return pdf_output_path
 
     if st.button("Generate Questions"):
         if not company_name or not product_brand or not product_description or not production_location or not geographical_area or not production_volume or not annual_revenue:
