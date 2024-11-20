@@ -230,7 +230,7 @@ else:
     def generate_pdf(questions):
        pdf = FPDF()
        pdf.add_page()
-       pdf.set_font("Arial", size=12)
+       pdf.set_font("helvetica", size=12)
        pdf.cell(200, 10, txt="Generated Questions", ln=True, align='C')
        pdf.ln(10)
     
