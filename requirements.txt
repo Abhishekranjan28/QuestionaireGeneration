@@ -1,0 +1,7 @@
+streamlit
+python-dotenv
+fpdf2
+google-generativeai
+PyMuPDF
+python-docx
+streamlit-cookies-manager
