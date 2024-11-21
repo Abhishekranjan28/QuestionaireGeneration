@@ -277,7 +277,7 @@ else:
                     f"8. Don't Use symbols of currency. Rather use Name of Currency in response."
                 )
 
-                model = genai.GenerativeModel("gemini-1.5-flash")
+                model = genai.GenerativeModel("tunedModels/questionairegenerator")
                 response = model.generate_content(prompt)
                 questions = response.text.strip().split("\n")
 
