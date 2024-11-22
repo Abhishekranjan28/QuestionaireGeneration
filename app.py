@@ -91,27 +91,25 @@ def login_user(username, password):
         return False
 
 
-if cookies.get("logged_in") == "true":
-    st.session_state.logged_in = True
-    st.session_state.username = cookies.get("username")
+# Check if the user is logged in based on session state or cookies
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = cookies.get("logged_in") == "true"
+    st.session_state.username = cookies.get("username", "")
 
-if "logged_in" not in st.session_state or not st.session_state.logged_in:
-   
+if not st.session_state.logged_in:
+    # User is not logged in, show login/register UI
     col_left, col_right = st.columns([4,3])
-
     with col_left:
-        st.image("Altibbe logo dark.png", width=130)  
-
+        st.image("Altibbe logo dark.png", width=130)
     with col_right:
-        st.image("Hedamo.jpg", width=200) 
+        st.image("Hedamo.jpg", width=200)
 
     st.markdown(
-    """
-    <h1 style='font-size:24px; color:black;'>Login and Register</h1>
-    """, 
-    unsafe_allow_html=True
-)
-
+        """
+        <h1 style='font-size:24px; color:black;'>Login and Register</h1>
+        """, 
+        unsafe_allow_html=True
+    )
 
     auth_mode = st.radio("Choose Authentication Mode", ["Login(If registered)", "Register"])
     username = st.text_input("Username")
@@ -127,9 +125,7 @@ if "logged_in" not in st.session_state or not st.session_state.logged_in:
         if st.button("Login"):
             if username and password:
                 if login_user(username, password):
-                    if username == "Abhi28" and password == "abhi@#123":
-                        st.session_state.allow_download = True 
-                    st.rerun()
+                    st.rerun()  # Refresh the page after successful login
 else:
     if st.button("Logout"):
         cookies["logged_in"] = ""
@@ -226,6 +222,7 @@ else:
         max_value=100,
         value=30,
     )
+    
     def generate_pdf(questions):
         pdf = FPDF()
         pdf.add_page()
@@ -263,8 +260,8 @@ else:
                     f"Context from input files:\n{extracted_text}\n\n"
                     f"**Specific Constraints or Information:**\n{specific_constraints}\n\n"
                     f"**Instructions:**\n"
-                    f"- Generate {num_questions // 2} short-answer questions, {num_questions // 4} multiple-choice questions (with 4 options each), "
-                    f"and {num_questions - (num_questions // 2) - (num_questions // 4)} binary (Yes/No) questions. Generate the exact given number of questions.\n"
+                    f"- Generate {2*num_questions // 3} short-answer questions, {num_questions // 6} multiple-choice questions (with 4 options each), "
+                    f"and {num_questions//6} binary (Yes/No) questions. Generate the exact given number of questions.\n"
                     f"- Ensure questions are focused on product quality, compliance, good practices, brand positioning, and sustainability.\n\n"
                     f"**Key Objectives:**\n"
                     f"1. Investigate product-specific attributes such as health benefits, safety, and unique health propositions.\n"
@@ -274,10 +271,15 @@ else:
                     f"5. Gather detailed insights into sustainable practices, including resource efficiency and waste management.\n"
                     f"6. Capture information regarding the company’s future commitments to health and sustainability improvements.\n\n"
                     f"7. Generate Questions in form such that my client has to answer about his product."
-                    f"8. Don't Use symbols of currency. Rather use Name of Currency in response."
+                    f"8. Don't Use symbols of currency. Rather use Name of Currency in response.",
+                    f"9.Don't use some special symbols(like smart apostrophe) that connot be encoded using codec."
+                    f"10. Use good Introduction and conclusion."
+                    f"11. Question should be of top Quality."
+                    f"12. Include scientific and geographic factors also while generating questions."
+                    f"13. Questions should be interesting to answer."
                 )
 
-                model = genai.GenerativeModel("tunedModels/questionairegenerator")
+                model = genai.GenerativeModel("gemini-1.5-flash")
                 response = model.generate_content(prompt)
                 questions = response.text.strip().split("\n")
 
