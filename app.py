@@ -276,7 +276,8 @@ else:
                     f"10. Use good Introduction and conclusion."
                     f"11. Question should be of top Quality."
                     f"12. Include scientific and geographic factors also while generating questions."
-                    f"13. Questions should be interesting to answer."
+                    f"13. Questions should be detailed and interesting to answer."
+                    f"14. Don't Break questions on basis of any section."
                 )
 
                 model = genai.GenerativeModel("gemini-1.5-flash")
