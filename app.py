@@ -273,15 +273,14 @@ else:
                     f"4. Inquire about production challenges, competitor analysis, and growth-oriented goals.\n"
                     f"5. Gather detailed insights into sustainable practices, including resource efficiency and waste management.\n"
                     f"6. Capture information regarding the company’s future commitments to health and sustainability improvements.\n\n"
-                    f"7. Generate Questions in form such that my client has to answer about his product."
-                    f"8. Don't Use symbols of currency. Rather use Name of Currency in response.",
-                    f"9.Don't use some special symbols(like smart apostrophe) that connot be encoded using codec."
-                    f"10. Use good Introduction and conclusion."
-                    f"11. Question should be of top Quality."
-                    f"12. Include scientific and geographic factors also while generating questions."
-                    f"13. Questions should be detailed and interesting to answer."
-                    f"14. Do not Break questions on basis of any section like product , health, sustainability etc.."
-                    f"15. Generate questions on different processes of making the product.Ex: Different stages of crop production,processing in industries etc."
+                    f"7. Generate Questions in form such that my client has to answer about his product.\n"
+                    f"8. Don't Use symbols of currency. Rather use Name of Currency in response.\n",
+                    f"9.Don't use some special symbols(like smart apostrophe) that connot be encoded using codec.\n"
+                    f"10. Use good Introduction and conclusion.\n"
+                    f"11. Question should be of top Quality.\n"
+                    f"12. Include scientific and geographic factors also while generating questions.\n"
+                    f"13. Questions should be very detailed and interesting to answer.\n"
+                    f"15. Generate questions on different processes of making the product.Ex: Different stages of crop production,processing in industries etc.\n"
                 )
 
                 model = genai.GenerativeModel("gemini-1.5-flash")
