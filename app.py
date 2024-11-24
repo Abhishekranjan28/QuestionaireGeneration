@@ -200,6 +200,8 @@ else:
     unsafe_allow_html=True
 )
     col1, col2 = st.columns(2)
+    production_volume=""
+    annual_revenue=""
     with col1:
         company_name = st.text_input("Enter the name of the company:")
         product_brand = st.text_input("Enter the product brand:")
@@ -247,10 +249,11 @@ else:
         return pdf_output_path
 
     if st.button("Generate Questions"):
-        if not company_name or not product_brand or not product_description or not production_location or not geographical_area or not production_volume or not annual_revenue:
+        if not company_name or not product_brand or not product_description or not production_location or not geographical_area:
             st.warning("Please fill out all required fields in the Product Details section.")
         else:
             try:
+                
                 prompt = (
                     f"Generate a comprehensive questionnaire tailored for the product brand '{product_brand}', manufactured by '{company_name}', "
                     f"with a detailed description as '{product_description}', produced in '{production_location}', targeting the '{geographical_area}' geographical area. "
@@ -277,7 +280,8 @@ else:
                     f"11. Question should be of top Quality."
                     f"12. Include scientific and geographic factors also while generating questions."
                     f"13. Questions should be detailed and interesting to answer."
-                    f"14. Don't Break questions on basis of any section."
+                    f"14. Do not Break questions on basis of any section like product , health, sustainability etc.."
+                    f"15. Generate questions on different processes of making the product.Ex: Different stages of crop production,processing in industries etc."
                 )
 
                 model = genai.GenerativeModel("gemini-1.5-flash")
