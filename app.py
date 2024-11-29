@@ -143,6 +143,7 @@ else:
         cookies.save()
         st.session_state.logged_in = False
         st.rerun()
+    
 
     col_left, col_right = st.columns([3, 3])
 
@@ -151,6 +152,15 @@ else:
 
     with col_right:
         st.image("Hedamo.jpg", width=200)
+
+    st.markdown(
+    """
+    <a href="https://huggingface.co/spaces/abhi280622/Bhai-AI" target="_blank">
+        <button style="padding:8px 15px; font-size:16px;">Go to Report Generator Chatbot</button>
+    </a>
+    """,
+    unsafe_allow_html=True
+    )
 
     st.markdown(
         """
@@ -167,6 +177,8 @@ else:
     """, 
     unsafe_allow_html=True
 )
+
+
     uploaded_files = st.file_uploader(
         "Upload files (PDF, text, or Word documents):",
         type=["pdf", "txt", "docx"],
