@@ -10,9 +10,10 @@ from docx import Document
 import google.generativeai as genai
 import csv
 
+st.set_page_config(page_title="Chatbot-Report Generator", layout="wide")
+
 load_dotenv()
 
-st.set_page_config(page_title="Chatbot-Report Generator", layout="wide")
 
 cookies = EncryptedCookieManager(
     prefix="my_app",
