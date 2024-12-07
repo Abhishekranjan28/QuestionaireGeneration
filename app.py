@@ -12,6 +12,8 @@ import csv
 
 load_dotenv()
 
+st.set_page_config(page_title="Chatbot-Report Generator", layout="wide")
+
 cookies = EncryptedCookieManager(
     prefix="my_app",
     password=os.getenv("COOKIES_PASSWORD", "your_secret_password"),
@@ -90,7 +92,6 @@ def login_user(username, password):
         st.error("Invalid username or password")
         return False
 
-
 # Check if the user is logged in based on session state or cookies
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = cookies.get("logged_in") == "true"
@@ -98,7 +99,7 @@ if "logged_in" not in st.session_state:
 
 if not st.session_state.logged_in:
     # User is not logged in, show login/register UI
-    col_left, col_right = st.columns([4,3])
+    col_left, _, col_right = st.columns([1, 6, 1]) 
     with col_left:
         st.image("Altibbe logo dark.png", width=130)
     with col_right:
@@ -145,7 +146,7 @@ else:
         st.rerun()
     
 
-    col_left, col_right = st.columns([3, 3])
+    col_left, _, col_right = st.columns([1, 6, 1]) 
 
     with col_left:
         st.image("Altibbe logo dark.png", width=150)
@@ -297,7 +298,7 @@ else:
                     f"9.Don't use some special symbols(like smart apostrophe) that connot be encoded using codec."
                     f"10. Use good Introduction and conclusion."
                     f"11. Question should be of top Quality."
-                    f"12. Include scientific and geographic factors also while generating questions."
+                    f"12. Include scientific,geographic,different stages of production process with more emphasis  while generating questions."
                     f"13. Questions should be detailed and interesting to answer."
                     f"14. Do not Break questions on basis of any section like product , health, sustainability etc.."
                     f"15. Generate questions on different processes of making the product.Ex: Different stages of crop production,processing in industries etc."
