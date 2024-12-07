@@ -1,5 +1,8 @@
 import bcrypt
 import streamlit as st
+
+st.set_page_config(page_title="Chatbot-Report Generator", layout="wide")
+
 from streamlit_cookies_manager import EncryptedCookieManager
 import os
 from dotenv import load_dotenv
@@ -9,8 +12,6 @@ import fitz
 from docx import Document 
 import google.generativeai as genai
 import csv
-
-st.set_page_config(page_title="Chatbot-Report Generator", layout="wide")
 
 load_dotenv()
 
