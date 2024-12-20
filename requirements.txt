@@ -6,3 +6,4 @@ PyMuPDF
 python-docx
 streamlit-cookies-manager
 bcrypt
+beautifulsoup4
