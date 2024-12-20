@@ -1,8 +1,6 @@
 import bcrypt
 import streamlit as st
-
 st.set_page_config(page_title="Chatbot-Report Generator", layout="wide")
-
 from streamlit_cookies_manager import EncryptedCookieManager
 import os
 from dotenv import load_dotenv
@@ -12,6 +10,8 @@ import fitz
 from docx import Document 
 import google.generativeai as genai
 import csv
+import requests
+from bs4 import BeautifulSoup
 
 load_dotenv()
 
@@ -52,6 +52,21 @@ def save_generated_questions_to_csv(inputs, questions):
             questions_text
         ])
 
+def scrape_website(url):
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, 'html.parser')
+            heading = soup.find('h1').get_text(strip=True) if soup.find('h1') else "No heading found"
+            article = " ".join([p.get_text(strip=True) for p in soup.find_all('p')])
+            return heading, article
+        else:
+            st.error(f"Failed to fetch the URL. Status code: {response.status_code}")
+            return None, None
+    except Exception as e:
+        st.error(f"An error occurred while scraping: {e}")
+        return None, None
+
 def load_users():
     """Load users from CSV file."""
     if os.path.exists(USER_CSV_PATH):
@@ -84,7 +99,6 @@ def login_user(username, password):
         st.session_state.logged_in = True
         st.session_state.username = username
 
-        # Save login state in cookies
         cookies["logged_in"] = "true"
         cookies["username"] = username
         cookies.save()
@@ -224,6 +238,12 @@ else:
     """, 
     unsafe_allow_html=True
 )
+    website_url = st.text_input("Website URL (Optional)")
+
+    if website_url:
+       heading, article = scrape_website(website_url)
+       st.write(heading, article)
+
     col1, col2 = st.columns(2)
     production_volume=""
     annual_revenue=""
@@ -282,7 +302,7 @@ else:
                     f"The production volume is '{production_volume}' and the annual revenue is '{annual_revenue}'. "
                     f"The questionnaire should focus on key areas relevant to health, quality, safety, sustainability, and brand positioning, "
                     f"specifically addressing the unique health benefits and consumer perceptions surrounding the product.\n\n"
-                    f"Context from input files:\n{extracted_text}\n\n"
+                    f"Context from input files:\n{extracted_text} + {heading}+ {article}\n\n"
                     f"**Specific Constraints or Information:**\n{specific_constraints}\n\n"
                     f"**Instructions:**\n"
                     f"- Generate {2*num_questions // 3} short-answer questions, {num_questions // 6} multiple-choice questions (with 4 options each), "
@@ -303,7 +323,9 @@ else:
                     f"12. Include scientific,geographic,different stages of production process with more emphasis  while generating questions."
                     f"13. Questions should be detailed and interesting to answer."
                     f"14. Do not Break questions on basis of any section like product , health, sustainability etc.."
-                    f"15. Generate questions on different processes of making the product.Ex: Different stages of crop production,processing in industries etc."
+                    f"15. Generate questions on different processes of making the product.Ex: Different stages of crop production,processing in industries etc.",
+                    f"16. Also add the topic along with the generated questions( examples like: Health Attribute, production type, sustainability, marketing etc.)",
+                    f"17. Questions should be in minimum 30 words and very descriptive and explained."
                 )
 
                 def generate_docx(questions, inputs):
