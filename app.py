@@ -292,6 +292,7 @@ else:
         if video_id:
             st.info("Fetching transcript...")
             transcript = fetch_video_transcript(video_id)
+            st.write(transcript)
             if "Error" not in transcript:
                 st.success("Transcript fetched successfully!")
                 st.text_area("Full Transcript", transcript, height=300)
