@@ -7,3 +7,6 @@ python-docx
 streamlit-cookies-manager
 bcrypt
 beautifulsoup4
+youtube-transcript-api
+nltk
+requests
