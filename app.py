@@ -299,6 +299,8 @@ else:
                 st.info("Generating summary...")
                 summary = summarize_text(transcript, num_sentences=5)
                 st.text_area("Summary", summary, height=150)
+            else:
+                st.write("Error in transcript")
 
 
     col1, col2 = st.columns(2)
