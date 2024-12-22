@@ -12,14 +12,7 @@ import google.generativeai as genai
 import csv
 import requests
 from bs4 import BeautifulSoup
-from youtube_transcript_api import YouTubeTranscriptApi
-from youtube_transcript_api.formatters import TextFormatter
-from nltk.tokenize import sent_tokenize, word_tokenize
-from nltk.probability import FreqDist
-from nltk.corpus import stopwords
-import string
-import re
-import nltk
+
 
 load_dotenv()
 
@@ -60,49 +53,24 @@ def save_generated_questions_to_csv(inputs, questions):
             questions_text
         ])
 
-def scrape_website(url):
-    try:
-        response = requests.get(url)
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.text, 'html.parser')
-            heading = soup.find('h1').get_text(strip=True) if soup.find('h1') else "No heading found"
-            article = " ".join([p.get_text(strip=True) for p in soup.find_all('p')])
-            return heading, article
-        else:
-            st.error(f"Failed to fetch the URL. Status code: {response.status_code}")
-            return None, None
-    except Exception as e:
-        st.error(f"An error occurred while scraping: {e}")
-        return None, None
+def scrape_multiple_websites(urls):
+    all_headings_and_articles = []
+    for url in urls:
+        try:
+            response = requests.get(url)
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.text, 'html.parser')
+                heading = soup.find('h1').get_text(strip=True) if soup.find('h1') else "No heading found"
+                article = " ".join([p.get_text(strip=True) for p in soup.find_all('p')])
+                all_headings_and_articles.append((heading, article))
+            else:
+                st.error(f"Failed to fetch the URL: {url}. Status code: {response.status_code}")
+                all_headings_and_articles.append(("Failed to fetch", ""))
+        except Exception as e:
+            st.error(f"An error occurred while scraping: {e}")
+            all_headings_and_articles.append(("Error", ""))
+    return all_headings_and_articles
 
-nltk.download('punkt')
-nltk.download('stopwords')
-
-def extract_video_id(url):
-    match = re.search(r"(?:v=|\/)([0-9A-Za-z_-]{11})", url)
-    return match.group(1) if match else None
-
-def fetch_video_transcript(video_id):
-    try:
-        transcript = YouTubeTranscriptApi.get_transcript(video_id, proxies={"https": "http://localhost:8080"})
-        formatter = TextFormatter()
-        full_transcript = formatter.format_transcript(transcript)
-        return full_transcript
-    except Exception as e:
-        return f"Error fetching transcript: {str(e)}"
-
-def summarize_text(text, num_sentences=5):
-    sentences = sent_tokenize(text)
-    
-    stop_words = set(stopwords.words("english") + list(string.punctuation))
-    words = [word for word in word_tokenize(text.lower()) if word not in stop_words]
-    
-    freq_dist = FreqDist(words)
-    
-    sentence_scores = {sent: sum(freq_dist[word.lower()] for word in word_tokenize(sent)) for sent in sentences}
-    
-    summarized_sentences = sorted(sentence_scores, key=sentence_scores.get, reverse=True)[:num_sentences]
-    return " ".join(summarized_sentences)
 
 def load_users():
     """Load users from CSV file."""
@@ -275,34 +243,25 @@ else:
     """, 
     unsafe_allow_html=True
 )
-    website_url = st.text_input("Website URL (Optional)")
     
-    heading=""
-    article=""
-    summary=""
+    combined_article=""
 
-    if website_url:
-       heading, article = scrape_website(website_url)
-       st.write(heading, article)
+    website_urls_input = st.text_area("Enter multiple website URLs (comma separated):(optional)")
 
-    video_url = st.text_input("YouTube Video URL (optional)", "")
+    if website_urls_input:
+       urls = [url.strip() for url in website_urls_input.split(",")]
 
-    if video_url:
-        video_id = extract_video_id(video_url)
-        if video_id:
-            st.info("Fetching transcript...")
-            transcript = fetch_video_transcript(video_id)
-            st.write(transcript)
-            if "Error" not in transcript:
-                st.success("Transcript fetched successfully!")
-                st.text_area("Full Transcript", transcript, height=300)
-                
-                st.info("Generating summary...")
-                summary = summarize_text(transcript, num_sentences=5)
-                st.text_area("Summary", summary, height=150)
-            else:
-                st.write("Error in transcript")
+       if st.button("Scrape Websites"):
+          scraped_data = scrape_multiple_websites(urls)
 
+          st.markdown("<h5>Scraped Data:</h5>", unsafe_allow_html=True)
+          for idx, (heading, article) in enumerate(scraped_data):
+            st.markdown(f"##### Website {idx + 1}: {heading}")
+            st.write(article)
+
+          combined_article = "\n".join([article for _, article in scraped_data])
+          st.markdown(f"##### Combined Article from All Websites:")
+          st.write(combined_article)
 
     col1, col2 = st.columns(2)
     production_volume=""
@@ -362,7 +321,7 @@ else:
                     f"The production volume is '{production_volume}' and the annual revenue is '{annual_revenue}'. "
                     f"The questionnaire should focus on key areas relevant to health, quality, safety, sustainability, and brand positioning, "
                     f"specifically addressing the unique health benefits and consumer perceptions surrounding the product.\n\n"
-                    f"Context from input files:\n{extracted_text} + {heading}+ {article} +{summary}\n\n"
+                    f"Context from input files:\n{extracted_text} + {combined_article}\n\n"
                     f"**Specific Constraints or Information:**\n{specific_constraints}\n\n"
                     f"**Instructions:**\n"
                     f"- Generate {2*num_questions // 3} short-answer questions, {num_questions // 6} multiple-choice questions (with 4 options each), "
