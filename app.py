@@ -84,7 +84,7 @@ def extract_video_id(url):
 
 def fetch_video_transcript(video_id):
     try:
-        transcript = YouTubeTranscriptApi.get_transcript(video_id)
+        transcript = YouTubeTranscriptApi.get_transcript(video_id, proxies={"https": "http://localhost:8080"})
         formatter = TextFormatter()
         full_transcript = formatter.format_transcript(transcript)
         return full_transcript
