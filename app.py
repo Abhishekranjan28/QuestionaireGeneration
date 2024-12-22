@@ -12,6 +12,14 @@ import google.generativeai as genai
 import csv
 import requests
 from bs4 import BeautifulSoup
+from youtube_transcript_api import YouTubeTranscriptApi
+from youtube_transcript_api.formatters import TextFormatter
+from nltk.tokenize import sent_tokenize, word_tokenize
+from nltk.probability import FreqDist
+from nltk.corpus import stopwords
+import string
+import re
+import nltk
 
 load_dotenv()
 
@@ -66,6 +74,35 @@ def scrape_website(url):
     except Exception as e:
         st.error(f"An error occurred while scraping: {e}")
         return None, None
+
+nltk.download('punkt')
+nltk.download('stopwords')
+
+def extract_video_id(url):
+    match = re.search(r"(?:v=|\/)([0-9A-Za-z_-]{11})", url)
+    return match.group(1) if match else None
+
+def fetch_video_transcript(video_id):
+    try:
+        transcript = YouTubeTranscriptApi.get_transcript(video_id)
+        formatter = TextFormatter()
+        full_transcript = formatter.format_transcript(transcript)
+        return full_transcript
+    except Exception as e:
+        return f"Error fetching transcript: {str(e)}"
+
+def summarize_text(text, num_sentences=5):
+    sentences = sent_tokenize(text)
+    
+    stop_words = set(stopwords.words("english") + list(string.punctuation))
+    words = [word for word in word_tokenize(text.lower()) if word not in stop_words]
+    
+    freq_dist = FreqDist(words)
+    
+    sentence_scores = {sent: sum(freq_dist[word.lower()] for word in word_tokenize(sent)) for sent in sentences}
+    
+    summarized_sentences = sorted(sentence_scores, key=sentence_scores.get, reverse=True)[:num_sentences]
+    return " ".join(summarized_sentences)
 
 def load_users():
     """Load users from CSV file."""
@@ -239,10 +276,30 @@ else:
     unsafe_allow_html=True
 )
     website_url = st.text_input("Website URL (Optional)")
+    
+    heading=""
+    article=""
+    summary=""
 
     if website_url:
        heading, article = scrape_website(website_url)
        st.write(heading, article)
+
+    video_url = st.text_input("YouTube Video URL (optional)", "")
+
+    if video_url:
+        video_id = extract_video_id(video_url)
+        if video_id:
+            st.info("Fetching transcript...")
+            transcript = fetch_video_transcript(video_id)
+            if "Error" not in transcript:
+                st.success("Transcript fetched successfully!")
+                st.text_area("Full Transcript", transcript, height=300)
+                
+                st.info("Generating summary...")
+                summary = summarize_text(transcript, num_sentences=5)
+                st.text_area("Summary", summary, height=150)
+
 
     col1, col2 = st.columns(2)
     production_volume=""
@@ -302,7 +359,7 @@ else:
                     f"The production volume is '{production_volume}' and the annual revenue is '{annual_revenue}'. "
                     f"The questionnaire should focus on key areas relevant to health, quality, safety, sustainability, and brand positioning, "
                     f"specifically addressing the unique health benefits and consumer perceptions surrounding the product.\n\n"
-                    f"Context from input files:\n{extracted_text} + {heading}+ {article}\n\n"
+                    f"Context from input files:\n{extracted_text} + {heading}+ {article} +{summary}\n\n"
                     f"**Specific Constraints or Information:**\n{specific_constraints}\n\n"
                     f"**Instructions:**\n"
                     f"- Generate {2*num_questions // 3} short-answer questions, {num_questions // 6} multiple-choice questions (with 4 options each), "
