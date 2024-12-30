@@ -285,7 +285,7 @@ else:
     num_questions = st.number_input(
         "Enter the number of questions to generate:",
         min_value=1,
-        max_value=100,
+        max_value=200,
         value=30,
     )
     
@@ -316,48 +316,47 @@ else:
             try:
                 
                 prompt = (
-                    f"Generate a comprehensive questionnaire tailored for the product brand '{product_brand}', manufactured by '{company_name}', "
-                    f"with a detailed description as '{product_description}', produced in '{production_location}', targeting the '{geographical_area}' geographical area. "
-                    f"The production volume is '{production_volume}' and the annual revenue is '{annual_revenue}'. "
-                    f"The questionnaire should focus on key areas relevant to health, quality, safety, sustainability, and brand positioning, "
-                    f"specifically addressing the unique health benefits and consumer perceptions surrounding the product.\n\n"
-                    f"Context from input files:\n{extracted_text} + {combined_article}\n\n"
-                    f"**Specific Constraints or Information:**\n{specific_constraints}\n\n"
-                    f"**Instructions:**\n"
-                    f"- Generate {2*num_questions // 3} short-answer questions, {num_questions // 6} multiple-choice questions (with 4 options each), "
-                    f"and {num_questions//6} binary (Yes/No) questions. Generate the exact given number of questions.\n"
-                    f"- Ensure questions are focused on product quality, compliance, good practices, brand positioning, and sustainability.\n\n"
-                    f"**Key Objectives:**\n"
-                    f"1. Investigate product-specific attributes such as health benefits, safety, and unique health propositions.\n"
-                    f"2. Assess good practices, compliance with regulations, certifications, and ethical practices in business.\n"
-                    f"3. Understand the current and planned market presence, brand perception, and pricing strategy.\n"
-                    f"4. Inquire about production challenges, competitor analysis, and growth-oriented goals.\n"
-                    f"5. Gather detailed insights into sustainable practices, including resource efficiency and waste management.\n"
-                    f"6. Capture information regarding the company’s future commitments to health and sustainability improvements.\n\n"
-                    f"7. Generate Questions in form such that my client has to answer about his product."
-                    f"8. Don't Use symbols of currency. Rather use Name of Currency in response.",
-                    f"9.Don't use some special symbols(like smart apostrophe) that connot be encoded using codec."
-                    f"10. Use good Introduction and conclusion."
-                    f"11. Question should be of top Quality."
-                    f"12. Include scientific,geographic,different stages of production process with more emphasis  while generating questions."
-                    f"13. Questions should be detailed and interesting to answer."
-                    f"14. Do not Break questions on basis of any section like product , health, sustainability etc.."
-                    f"15. Generate questions on different processes of making the product.Ex: Different stages of crop production,processing in industries etc.",
-                    f"16. Also add the topic along with the generated questions( examples like: Health Attribute, production type, sustainability, marketing etc.)",
-                    f"17. Questions should be in minimum 30 words and very descriptive and explained."
-                )
-
-                def generate_docx(questions, inputs):
+    f"Generate a comprehensive questionnaire tailored for the product brand '{product_brand}', manufactured by '{company_name}', "
+    f"with a detailed description as '{product_description}', produced in '{production_location}', targeting the '{geographical_area}' geographical area. "
+    f"The production volume is '{production_volume}' and the annual revenue is '{annual_revenue}'. "
+    f"The questionnaire should focus on key areas relevant to health, quality, safety, sustainability, and brand positioning, "
+    f"specifically addressing the unique health benefits and consumer perceptions surrounding the product, with a strong emphasis on potential hazards related to agricultural inputs, post-harvest treatments, seed quality, and ripening processes.\n\n"
+    f"Context from input files:\n{extracted_text} + {combined_article}\n\n"
+    f"**Specific Constraints or Information:**\n{specific_constraints}\n\n"
+    f"**Instructions:**\n"
+    f"- Generate {2*num_questions // 3} short-answer questions, {num_questions // 6} multiple-choice questions (with 4 options each), "
+    f"and {num_questions//6} binary (Yes/No) questions. Generate the exact given number of questions.\n"
+    f"- Ensure questions are focused on product quality, compliance, good practices, brand positioning, and sustainability, with a strong emphasis on the following areas, drawing specific details from the provided text:\n"
+    f"    *   **Harmful agricultural inputs:** (Pesticides: Organophosphates, Carbamates, Synthetic Pyrethroids, Organochlorines, Neonicotinoids; Herbicides: Glyphosate; Fungicides: Mancozeb; Fertilizers: Synthetic Nitrogen, Phosphorus, Potassium; PGRs: Synthetic Hormones, Non-compliant Auxins/Cytokinins; Soil Conditioners: Heavy Metals, Sewage Sludge; Animal Feed Additives: Antibiotics, Hormonal Additives; Contaminated Irrigation Water: Industrial Chemicals, Pesticide Runoff)\n"
+    f"    *   **Post-harvest treatments:** (Synthetic Preservatives: Sulfur Dioxide, Benzoates, Sorbates; Wax Coatings: Natural/Synthetic; Synthetic Fumigants: Methyl Bromide, Phosphine Gas; Chemical Treatments for Disease Prevention: Imazalil, Thiabendazole, Chlorine Washes; Cold Storage/MAP: Chemical Leaching, Nutrient Loss; Irradiation: Radiolytic Products, Nutrient Loss; Hazardous Packaging: Plasticizers, BPA)\n"
+    f"    *   **Contaminated seeds:** (Chemical Treatments: Carbendazim, Captan, Thiram; Pathogenic Contamination: Fungi, Bacteria, Viruses; Environmental Exposure: Industrial Pollutants, Heavy Metals; Improper Storage/Handling; Adulteration)\n"
+    f"    *   **Chemical ripening agents:** (Calcium Carbide: Arsenic, Phosphorus; Ethylene Gas; Ethephon; Methyl Jasmonate)\n\n"
+    f"**Key Objectives:**\n"
+    f"1. Investigate product-specific attributes such as health benefits, safety, and unique health propositions, with a focus on potential contamination and chemical residues originating from the specified inputs and treatments.\n"
+    f"2. Assess good practices, compliance with regulations, certifications, and ethical practices in business, specifically related to the use of agricultural inputs, post-harvest treatments, seed sourcing, and ripening methods, paying close attention to the potential health and environmental impacts described in the provided text.\n"
+    f"3. Understand the current and planned market presence, brand perception, and pricing strategy, considering consumer concerns about food safety and environmental impact, particularly concerning the issues highlighted in the provided text.\n"
+    f"4. Inquire about production challenges, competitor analysis, and growth-oriented goals, with an emphasis on mitigating risks related to contamination and chemical residues, drawing on the information provided about specific hazards.\n"
+    f"5. Gather detailed insights into sustainable practices, including resource efficiency, waste management, and the reduction of harmful chemical usage, with reference to the specific chemicals and practices mentioned in the text.\n"
+    f"6. Capture information regarding the future of company and its commitments to health and sustainability improvements, particularly in relation to minimizing or eliminating the use of harmful substances identified in the provided text.\n\n"
+    f"7. Generate Questions in form such that my client has to answer about his product."
+    f"8. Don't Use symbols of currency. Rather use Name of Currency in response.",
+    f"9.Don't use some special symbols(like smart apostrophe) that cannot be encoded using codec."
+    f"10. Use good Introduction and conclusion."
+    f"11. Question should be of top Quality."
+    f"12. Include scientific, geographic, different stages of production process with more emphasis  while generating questions."
+    f"13. Questions should be detailed and interesting to answer."
+    f"14. Do not Break questions on basis of any section like product , health, sustainability etc.."
+    f"15. Generate questions on different processes of making the product.Ex: Different stages of crop production,processing in industries etc.",
+    f"16. Also add the topic along with the generated questions( examples like: Health Attribute, production type, sustainability, marketing etc.)",
+    f"17. Questions should be in minimum 40 words and very descriptive and explained."
+    f"18. Be very strict to given instructions.Generate exact number of questions given in instructions."
+)
+                def generate_docx(questions):
                    """
                    Generates a DOCX file with questions and inputs and saves it to disk.
                    """
                    doc = Document()
-                   doc.add_heading("Generated Questionnaire Report", level=1)
-    
-                   doc.add_heading("Inputs:", level=2)
-                   for key, value in inputs.items():
-                      doc.add_paragraph(f"{key}: {value}")
-    
+                   doc.add_heading("Generated Questionnaire", level=1)
     
                    doc.add_heading("Generated Questions:", level=2)
                    for question in questions:
@@ -368,8 +367,7 @@ else:
                    doc.save(doc_path)
                    return doc_path
 
-# Main logic
-                model = genai.GenerativeModel("gemini-1.5-flash")
+                model = genai.GenerativeModel("gemini-2.0-flash-exp")
                 response = model.generate_content(prompt)
                 questions = response.text.strip().split("\n")
 
@@ -392,7 +390,7 @@ else:
                 save_generated_questions_to_csv(inputs, questions)
 
                 pdf_path = generate_pdf(questions)
-                docx_path = generate_docx(questions, inputs)
+                docx_path = generate_docx(questions)
               
                 with open(pdf_path, "rb") as pdf_file:
                      st.download_button(
