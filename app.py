@@ -314,7 +314,6 @@ else:
             st.warning("Please fill out all required fields in the Product Details section.")
         else:
             try:
-                
                 prompt = (
     f"Generate a comprehensive questionnaire tailored for the product brand '{product_brand}', manufactured by '{company_name}', "
     f"with a detailed description as '{product_description}', produced in '{production_location}', targeting the '{geographical_area}' geographical area. "
@@ -327,10 +326,12 @@ else:
     f"- Generate {2*num_questions // 3} short-answer questions, {num_questions // 6} multiple-choice questions (with 4 options each), "
     f"and {num_questions//6} binary (Yes/No) questions. Generate the exact given number of questions.\n"
     f"- Ensure questions are focused on product quality, compliance, good practices, brand positioning, and sustainability, with a strong emphasis on the following areas, drawing specific details from the provided text:\n"
-    f"    *   **Harmful agricultural inputs:** (Pesticides: Organophosphates, Carbamates, Synthetic Pyrethroids, Organochlorines, Neonicotinoids; Herbicides: Glyphosate; Fungicides: Mancozeb; Fertilizers: Synthetic Nitrogen, Phosphorus, Potassium; PGRs: Synthetic Hormones, Non-compliant Auxins/Cytokinins; Soil Conditioners: Heavy Metals, Sewage Sludge; Animal Feed Additives: Antibiotics, Hormonal Additives; Contaminated Irrigation Water: Industrial Chemicals, Pesticide Runoff)\n"
-    f"    *   **Post-harvest treatments:** (Synthetic Preservatives: Sulfur Dioxide, Benzoates, Sorbates; Wax Coatings: Natural/Synthetic; Synthetic Fumigants: Methyl Bromide, Phosphine Gas; Chemical Treatments for Disease Prevention: Imazalil, Thiabendazole, Chlorine Washes; Cold Storage/MAP: Chemical Leaching, Nutrient Loss; Irradiation: Radiolytic Products, Nutrient Loss; Hazardous Packaging: Plasticizers, BPA)\n"
-    f"    *   **Contaminated seeds:** (Chemical Treatments: Carbendazim, Captan, Thiram; Pathogenic Contamination: Fungi, Bacteria, Viruses; Environmental Exposure: Industrial Pollutants, Heavy Metals; Improper Storage/Handling; Adulteration)\n"
-    f"    *   **Chemical ripening agents:** (Calcium Carbide: Arsenic, Phosphorus; Ethylene Gas; Ethephon; Methyl Jasmonate)\n\n"
+    f"  **Harmful agricultural inputs:** (Pesticides: Organophosphates, Carbamates, Synthetic Pyrethroids, Organochlorines, Neonicotinoids; Herbicides: Glyphosate; Fungicides: Mancozeb; Fertilizers: Synthetic Nitrogen, Phosphorus, Potassium; PGRs: Synthetic Hormones, Non-compliant Auxins/Cytokinins; Soil Conditioners: Heavy Metals, Sewage Sludge; Animal Feed Additives: Antibiotics, Hormonal Additives; Contaminated Irrigation Water: Industrial Chemicals, Pesticide Runoff)\n"
+    f"  **Post-harvest treatments:** (Synthetic Preservatives: Sulfur Dioxide, Benzoates, Sorbates; Wax Coatings: Natural/Synthetic; Synthetic Fumigants: Methyl Bromide, Phosphine Gas; Chemical Treatments for Disease Prevention: Imazalil, Thiabendazole, Chlorine Washes; Cold Storage/MAP: Chemical Leaching, Nutrient Loss; Irradiation: Radiolytic Products, Nutrient Loss; Hazardous Packaging: Plasticizers, BPA)\n"
+    f"  **Contaminated seeds:** (Chemical Treatments: Carbendazim, Captan, Thiram; Pathogenic Contamination: Fungi, Bacteria, Viruses; Environmental Exposure: Industrial Pollutants, Heavy Metals; Improper Storage/Handling; Adulteration)\n"
+    f"  **Chemical ripening agents:** (Calcium Carbide: Arsenic, Phosphorus; Ethylene Gas; Ethephon; Methyl Jasmonate)\n\n"
+    f"  **Harmful Effects of Additives and Antibiotics in Livestock Production on Human Health:(If the production type is of Livestock then include it otherwise don't)** This document outlines the risks associated with the use of hormonal additives (estrogen, testosterone, progesterone, growth-promoting steroids) and antibiotics in livestock feed. Hormonal additives can cause endocrine disruption (hormonal imbalances, reproductive issues, developmental abnormalities, increased risk of hormone-dependent cancers), cardiovascular risks, obesity, metabolic disorders, and neurological disorders. Environmental contamination from these additives can further impact human health through water and soil contamination and bioaccumulation. Antibiotic use contributes to antibiotic resistance, allergic reactions, disruption of gut microbiota, and potential carcinogenic and toxic effects. Mitigation strategies include improved animal husbandry, use of probiotics, prebiotics, and phytogenic feed additives, stricter regulations, and increased consumer awareness.\n\n"
+    f"  **Harmful Effects of Contaminated Irrigation Water Due to Harmful Agricultural Practices**: This document highlights the detrimental impact of harmful agricultural practices on irrigation water quality, posing risks to human health and the environment. Key contaminants include pesticide runoff (Organochlorines, Organophosphates, Carbamates, Neonicotinoids), industrial chemicals (Arsenic, Mercury, Cadmium, Lead), fertilizer leaching (Nitrates), animal waste (Pathogens, Hormonal Residues), contaminated seeds (Thiram, Captan), and plastic mulches (Microplastics). These contaminants can cause neurological disorders, endocrine disruption, gastrointestinal and respiratory issues, carcinogenic risks, and chronic diseases in humans. Environmentally, they contribute to eutrophication, biodiversity loss, soil degradation, and bioaccumulation. Mitigation strategies include sustainable farming practices (IPM, organic farming), advanced irrigation techniques (drip irrigation, water filtration), proper waste management, monitoring and regulation, and education and awareness programs.\n\n"
     f"**Key Objectives:**\n"
     f"1. Investigate product-specific attributes such as health benefits, safety, and unique health propositions, with a focus on potential contamination and chemical residues originating from the specified inputs and treatments.\n"
     f"2. Assess good practices, compliance with regulations, certifications, and ethical practices in business, specifically related to the use of agricultural inputs, post-harvest treatments, seed sourcing, and ripening methods, paying close attention to the potential health and environmental impacts described in the provided text.\n"
@@ -338,18 +339,19 @@ else:
     f"4. Inquire about production challenges, competitor analysis, and growth-oriented goals, with an emphasis on mitigating risks related to contamination and chemical residues, drawing on the information provided about specific hazards.\n"
     f"5. Gather detailed insights into sustainable practices, including resource efficiency, waste management, and the reduction of harmful chemical usage, with reference to the specific chemicals and practices mentioned in the text.\n"
     f"6. Capture information regarding the future of company and its commitments to health and sustainability improvements, particularly in relation to minimizing or eliminating the use of harmful substances identified in the provided text.\n\n"
-    f"7. Generate Questions in form such that my client has to answer about his product."
-    f"8. Don't Use symbols of currency. Rather use Name of Currency in response.",
+    f"7. Generate Questions in form such that my client has to answer about his product.\n"
+    f"8. Don't Use symbols of currency. Rather use Name of Currency in response.\n"
     f"9.Don't use some special symbols(like smart apostrophe) that cannot be encoded using codec."
-    f"10. Use good Introduction and conclusion."
-    f"11. Question should be of top Quality."
-    f"12. Include scientific, geographic, different stages of production process with more emphasis  while generating questions."
-    f"13. Questions should be detailed and interesting to answer."
-    f"14. Do not Break questions on basis of any section like product , health, sustainability etc.."
-    f"15. Generate questions on different processes of making the product.Ex: Different stages of crop production,processing in industries etc.",
-    f"16. Also add the topic along with the generated questions( examples like: Health Attribute, production type, sustainability, marketing etc.)",
-    f"17. Questions should be in minimum 40 words and very descriptive and explained."
-    f"18. Be very strict to given instructions.Generate exact number of questions given in instructions."
+    f"10. Use good Introduction and conclusion.\n"
+    f"11. Question should be of top Quality.\n"
+    f"12. Include scientific, geographic, different stages of production process with more emphasis while generating questions.\n"
+    f"13. Questions should be detailed and interesting to answer.\n"
+    f"14. Do not Break questions on basis of any section like product , health, sustainability etc..\n"
+    f"15. Generate questions on different processes of making the product.Ex: Different stages of crop production,processing in industries etc.\n"
+    f"16. Also add the topic along with the generated questions( examples like: Health Attribute, production type, sustainability, marketing etc.)\n"
+    f"17. Questions should be in minimum 40 words and very descriptive and explained.\n\n"
+    f"18. Generate questions in such a way that We are assuming that the producers is all clear, but we are going to question them deeply to remove all doubt.\n"
+    f"19. Be very strict to given instructions.Generate exact number of questions given in instructions."
 )
                 def generate_docx(questions):
                    """
