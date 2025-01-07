@@ -16,7 +16,6 @@ from bs4 import BeautifulSoup
 
 load_dotenv()
 
-
 cookies = EncryptedCookieManager(
     prefix="my_app",
     password=os.getenv("COOKIES_PASSWORD", "your_secret_password"),
@@ -113,13 +112,11 @@ def login_user(username, password):
         st.error("Invalid username or password")
         return False
 
-# Check if the user is logged in based on session state or cookies
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = cookies.get("logged_in") == "true"
     st.session_state.username = cookies.get("username", "")
 
 if not st.session_state.logged_in:
-    # User is not logged in, show login/register UI
     col_left, _, col_right = st.columns([1, 6, 1]) 
     with col_left:
         st.image("Altibbe logo dark.png", width=130)
@@ -335,6 +332,7 @@ else:
     f"  **Adulterated Organic Manure Concerns:** Adulterated organic manures, containing impurities like heavy metals and industrial waste, negatively impact soil health (contamination, reduced microbial activity, altered pH), crop growth (toxicity, poor yield, residual effects), human health (food safety, pathogen transmission, chemical exposure), and the environment (water and air pollution, soil erosion). This leads to economic losses and erodes trust in organic practices. Stringent quality control, certification, and farmer awareness are crucial.\n\n"
     f"  **Harmful Effects of Chemical Residues on Human Health:** Chemical residues from pesticides (insecticides, fungicides, rodenticides) pose significant health risks. Acute exposure can cause neurological effects (headaches, confusion), respiratory issues (breathing difficulty), gastrointestinal problems (nausea, vomiting), and skin/eye irritation. Chronic exposure is linked to carcinogenic problems (e.g., DDT and cancer), endocrine disruption (e.g., chlorpyrifos and thyroid imbalances), neurotoxicity (e.g., organophosphates and memory loss), reproductive/developmental effects (e.g., dioxins and birth defects), and immunotoxicity (e.g., lindane and decreased white blood cell count). Residues are found in fruits, vegetables, meat, dairy, and water. Infants, children, pregnant women, farmers, and the elderly are particularly vulnerable. Prevention and mitigation strategies include regulatory measures (MRLs, bans), organic/sustainable farming (IPM), consumer awareness (washing produce, choosing organic), monitoring/testing, and education/training.\n\n"
     f"  **Harmful Effects of Plastics in Agriculture and the Food Industry:** The extensive use of plastics in agriculture and the food industry leads to significant environmental and health risks. Environmentally, plastics cause soil pollution (reduced aeration, water infiltration, and microbial activity), non-biodegradability (landfill accumulation), water pollution (microplastic contamination), and air pollution (from burning). In agriculture, plastics contribute to microplastic accumulation in soil, reduced soil productivity, and irrigation system blockages. In the food industry, they cause food contamination (chemical leaching of BPA and phthalates), and increased waste generation. Health impacts include chemical exposure and toxicity (endocrine disruption from BPA and phthalates, potential carcinogenicity from styrene), microplastic ingestion (inflammation, toxicity from attached chemicals, cellular damage), inhalation of airborne plastic particles (respiratory issues, neurological and developmental effects), and bioaccumulation in seafood (liver damage, neurological issues). Plastics also contribute to climate change through greenhouse gas emissions and fossil fuel dependence. Mitigation strategies include biodegradable alternatives, plastic recycling and reuse, government regulations, awareness campaigns, and adopting a circular economy.\n\n"
+    f" **Summary of Adulterants in Milk (Only when questions are asked about Diary products):** Milk is susceptible to adulteration with substances like water (dilutes nutrients, introduces microbes), starch (indigestion), detergents (gastrointestinal irritation, cancer risk), urea (kidney damage), formalin (toxic, carcinogenic), ammonium sulfate (organ damage), sodium carbonate/bicarbonate (digestive problems), synthetic milk (toxic residues), glucose/sugar (obesity, diabetes, cavities), hydrogen peroxide (toxic, cellular damage), and neutralizers (gastrointestinal irritation). These adulterants are added for economic gain or to increase shelf life. Detection methods include chemical tests, advanced techniques (chromatography, spectroscopy), and milk analyzers. Prevention relies on regulatory oversight, consumer awareness, and technological innovations. This emphasizes the need to scrutinize agricultural inputs, post-harvest treatments, seed quality, and all stages of the production process for potential contamination and adulteration.\n\n"
     f"**Key Objectives:**\n"
     f"1. Investigate product-specific attributes such as health benefits, safety, and unique health propositions, with a focus on potential contamination and chemical residues originating from the specified inputs and treatments.\n"
     f"2. Assess good practices, compliance with regulations, certifications, and ethical practices in business, specifically related to the use of agricultural inputs, post-harvest treatments, seed sourcing, and ripening methods, paying close attention to the potential health and environmental impacts described in the provided text.\n"
@@ -344,12 +342,12 @@ else:
     f"6. Capture information regarding the future of company and its commitments to health and sustainability improvements, particularly in relation to minimizing or eliminating the use of harmful substances identified in the provided text.\n\n"
     f"7. Generate Questions in form such that my client has to answer about his product.\n"
     f"8. Don't Use symbols of currency. Rather use Name of Currency in response.\n"
-    f"9.Don't use some special symbols(like smart apostrophe) that cannot be encoded using codec."
+    f"9. Don't use some special symbols(like smart apostrophe) that cannot be encoded using codec."
     f"10. Use good Introduction and conclusion.\n"
     f"11. Question should be of top Quality.\n"
     f"12. Include scientific, geographic, different stages of production process with more emphasis while generating questions.\n"
     f"13. Questions should be detailed and interesting to answer.\n"
-    f"14. Do not Break questions on basis of any section like product , health, sustainability etc..\n"
+    f"14. Put all Questions of similar topic at once under a sub-heading.\n"
     f"15. Generate questions on different processes of making the product.Ex: Different stages of crop production,processing in industries etc.\n"
     f"16. Also add the topic along with the generated questions( examples like: Health Attribute, production type, sustainability, marketing etc.)\n"
     f"17. Questions should be in minimum 40 words and very descriptive and explained.\n\n"
