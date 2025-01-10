@@ -32,7 +32,7 @@ if not GEMINI_API_KEY:
 genai.configure(api_key=GEMINI_API_KEY)
 
 USER_CSV_PATH = "users_data.csv"
-QUESTIONS_CSV_PATH = "generated_questions.csv"
+QUESTIONS_CSV_PATH = "generated_Questions.csv"
 
 def save_generated_questions_to_csv(inputs, questions):
     """Save inputs and generated questions to a CSV file."""
@@ -182,7 +182,7 @@ else:
     )
     if st.session_state.get('allow_admin_download'):
                    st.subheader("Admin Downloads")
-                   st.download_button("Download CSV of Generated Questions", data=open("generated_questions.csv", "rb"), file_name="generated_questions.csv", mime="text/csv")
+                   st.download_button("Download CSV of Generated Questions", data=open("generated_Questions.csv", "rb"), file_name="generated_Questions.csv", mime="text/csv")
                    st.download_button("Download CSV of Registered Users", data=open("users_data.csv", "rb"), file_name="users_data.csv", mime="text/csv")
     st.markdown(
         """
