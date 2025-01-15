@@ -10,3 +10,4 @@ beautifulsoup4
 youtube-transcript-api
 nltk
 requests
+pillow
