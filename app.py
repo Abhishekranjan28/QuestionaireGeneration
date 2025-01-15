@@ -12,6 +12,7 @@ import google.generativeai as genai
 import csv
 import requests
 from bs4 import BeautifulSoup
+from PIL import Image
 
 
 load_dotenv()
@@ -180,6 +181,16 @@ else:
     """,
     unsafe_allow_html=True
     )
+    
+    st.markdown(
+    """
+    <a href="https://huggingface.co/spaces/random29/QuestionaireGeneratorViaScrapping" target="_blank">
+        <button style="padding:8px 15px; font-size:16px;">Scrapper Questionaire Generator</button>
+    </a>
+    """,
+    unsafe_allow_html=True
+    )
+
     if st.session_state.get('allow_admin_download'):
                    st.subheader("Admin Downloads")
                    st.download_button("Download CSV of Generated Questions", data=open("generated_questions.csv", "rb"), file_name="generated_questions.csv", mime="text/csv")
@@ -248,21 +259,6 @@ else:
 
     website_urls_input = st.text_area("Enter multiple website URLs (comma separated):(optional)")
 
-    if website_urls_input:
-       urls = [url.strip() for url in website_urls_input.split(",")]
-
-       if st.button("Scrape Websites"):
-          scraped_data = scrape_multiple_websites(urls)
-
-          st.markdown("<h5>Scraped Data:</h5>", unsafe_allow_html=True)
-          for idx, (heading, article) in enumerate(scraped_data):
-            st.markdown(f"##### Website {idx + 1}: {heading}")
-            st.write(article)
-
-          combined_article = "\n".join([article for _, article in scraped_data])
-          st.markdown(f"##### Combined Article from All Websites:")
-          st.write(combined_article)
-
     col1, col2 = st.columns(2)
     production_volume=""
     annual_revenue=""
@@ -275,6 +271,37 @@ else:
         geographical_area = st.text_input("Enter the geographical market:")
         production_volume = st.text_input("Enter the production volume:")
         annual_revenue = st.text_input("Enter the annual revenue:")
+
+    st.markdown(
+    """
+    <h1 style='font-size:20px; color:black;'>Upload Image</h1>
+    """, 
+    unsafe_allow_html=True
+)
+    uploaded_images = st.file_uploader(
+    "Upload images related to the product or company (you can select multiple):",
+    type=["jpg", "png", "jpeg"],
+    accept_multiple_files=True,
+)
+
+    image_context = ""
+    if uploaded_images:
+        image_paths = []
+        st.markdown("<h4>Uploaded Images:</h4>", unsafe_allow_html=True)
+        for idx, uploaded_image in enumerate(uploaded_images, start=1):
+
+          image = Image.open(uploaded_image)
+          st.image(image, caption=f"Image {idx}", use_column_width=True)
+        
+          with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as temp_file:
+             image.save(temp_file.name)
+             image_paths.append(temp_file.name)
+    
+    
+        image_context = (
+        "Images related to the product/company have been uploaded. File paths:\n" +
+        "\n".join(image_paths)
+    )
 
     st.markdown(
     """
@@ -314,17 +341,31 @@ else:
             st.warning("Please fill out all required fields in the Product Details section.")
         else:
             try:
+                if website_urls_input:
+                       urls = [url.strip() for url in website_urls_input.split(",")]
+    
+                       scraped_data = scrape_multiple_websites(urls)
+
+                       st.markdown("<h5>Scraped Data:</h5>", unsafe_allow_html=True)
+                       for idx, (heading, article) in enumerate(scraped_data):
+                          st.markdown(f"##### Website {idx + 1}: {heading}")
+                          st.write(article)
+
+                       combined_article = "\n".join([article for _, article in scraped_data])
+                       st.markdown(f"##### Combined Article from All Websites:")
+                       st.write(combined_article)
                 prompt = (
     f"Generate a comprehensive questionnaire tailored for the product brand '{product_brand}', manufactured by '{company_name}', "
     f"with a detailed description as '{product_description}', produced in '{production_location}', targeting the '{geographical_area}' geographical area. "
     f"The production volume is '{production_volume}' and the annual revenue is '{annual_revenue}'. "
     f"The questionnaire should focus on key areas relevant to health, quality, safety, sustainability, and brand positioning, "
     f"specifically addressing the unique health benefits and consumer perceptions surrounding the product, with a strong emphasis on potential hazards related to agricultural inputs, post-harvest treatments, seed quality, and ripening processes.\n\n"
-    f"Context from input files:\n{extracted_text} + {combined_article}\n\n"
+    f"***Context from input files:***\n{extracted_text}\n\n + {combined_article}\n\n +{image_context}\n\n"
+    f"***Highest priority should be given to the context from input files.***\n\n"
     f"**Specific Constraints or Information:**\n{specific_constraints}\n\n"
     f"**Instructions:**\n"
     f"- Generate {2*num_questions // 3} short-answer questions, {num_questions // 6} multiple-choice questions (with 4 options each), "
-    f"and {num_questions//6} binary (Yes/No) questions. Generate the exact given number of questions.\n"
+    f"  and {num_questions//6} binary (Yes/No) questions. Generate the exact given number of questions.\n"
     f"- Ensure questions are focused on product quality, compliance, good practices, brand positioning, and sustainability, with a strong emphasis on the following areas, drawing specific details from the provided text:\n"
     f"  **Harmful agricultural inputs:** (Pesticides: Organophosphates, Carbamates, Synthetic Pyrethroids, Organochlorines, Neonicotinoids; Herbicides: Glyphosate; Fungicides: Mancozeb; Fertilizers: Synthetic Nitrogen, Phosphorus, Potassium; PGRs: Synthetic Hormones, Non-compliant Auxins/Cytokinins; Soil Conditioners: Heavy Metals, Sewage Sludge; Animal Feed Additives: Antibiotics, Hormonal Additives; Contaminated Irrigation Water: Industrial Chemicals, Pesticide Runoff)\n"
     f"  **Post-harvest treatments:** (Synthetic Preservatives: Sulfur Dioxide, Benzoates, Sorbates; Wax Coatings: Natural/Synthetic; Synthetic Fumigants: Methyl Bromide, Phosphine Gas; Chemical Treatments for Disease Prevention: Imazalil, Thiabendazole, Chlorine Washes; Cold Storage/MAP: Chemical Leaching, Nutrient Loss; Irradiation: Radiolytic Products, Nutrient Loss; Hazardous Packaging: Plasticizers, BPA)\n"
@@ -335,11 +376,11 @@ else:
     f"  **Adulterated Organic Manure Concerns:** Adulterated organic manures, containing impurities like heavy metals and industrial waste, negatively impact soil health (contamination, reduced microbial activity, altered pH), crop growth (toxicity, poor yield, residual effects), human health (food safety, pathogen transmission, chemical exposure), and the environment (water and air pollution, soil erosion). This leads to economic losses and erodes trust in organic practices. Stringent quality control, certification, and farmer awareness are crucial.\n\n"
     f"  **Harmful Effects of Chemical Residues on Human Health:** Chemical residues from pesticides (insecticides, fungicides, rodenticides) pose significant health risks. Acute exposure can cause neurological effects (headaches, confusion), respiratory issues (breathing difficulty), gastrointestinal problems (nausea, vomiting), and skin/eye irritation. Chronic exposure is linked to carcinogenic problems (e.g., DDT and cancer), endocrine disruption (e.g., chlorpyrifos and thyroid imbalances), neurotoxicity (e.g., organophosphates and memory loss), reproductive/developmental effects (e.g., dioxins and birth defects), and immunotoxicity (e.g., lindane and decreased white blood cell count). Residues are found in fruits, vegetables, meat, dairy, and water. Infants, children, pregnant women, farmers, and the elderly are particularly vulnerable. Prevention and mitigation strategies include regulatory measures (MRLs, bans), organic/sustainable farming (IPM), consumer awareness (washing produce, choosing organic), monitoring/testing, and education/training.\n\n"
     f"  **Harmful Effects of Plastics in Agriculture and the Food Industry:** The extensive use of plastics in agriculture and the food industry leads to significant environmental and health risks. Environmentally, plastics cause soil pollution (reduced aeration, water infiltration, and microbial activity), non-biodegradability (landfill accumulation), water pollution (microplastic contamination), and air pollution (from burning). In agriculture, plastics contribute to microplastic accumulation in soil, reduced soil productivity, and irrigation system blockages. In the food industry, they cause food contamination (chemical leaching of BPA and phthalates), and increased waste generation. Health impacts include chemical exposure and toxicity (endocrine disruption from BPA and phthalates, potential carcinogenicity from styrene), microplastic ingestion (inflammation, toxicity from attached chemicals, cellular damage), inhalation of airborne plastic particles (respiratory issues, neurological and developmental effects), and bioaccumulation in seafood (liver damage, neurological issues). Plastics also contribute to climate change through greenhouse gas emissions and fossil fuel dependence. Mitigation strategies include biodegradable alternatives, plastic recycling and reuse, government regulations, awareness campaigns, and adopting a circular economy.\n\n"
-    f" ** Adulterants in Milk (Only when questions are asked about Diary products):** Milk is susceptible to adulteration with substances like water (dilutes nutrients, introduces microbes), starch (indigestion), detergents (gastrointestinal irritation, cancer risk), urea (kidney damage), formalin (toxic, carcinogenic), ammonium sulfate (organ damage), sodium carbonate/bicarbonate (digestive problems), synthetic milk (toxic residues), glucose/sugar (obesity, diabetes, cavities), hydrogen peroxide (toxic, cellular damage), and neutralizers (gastrointestinal irritation). These adulterants are added for economic gain or to increase shelf life. Detection methods include chemical tests, advanced techniques (chromatography, spectroscopy), and milk analyzers. Prevention relies on regulatory oversight, consumer awareness, and technological innovations. This emphasizes the need to scrutinize agricultural inputs, post-harvest treatments, seed quality, and all stages of the production process for potential contamination and adulteration.\n\n"
-    f" ** If given products is about **Nuts** then include this as context: Nuts are frequently adulterated to increase profit or shelf life with substances like artificial colorants (potentially causing allergic reactions, hyperactivity, and cancer), wax coatings (leading to digestive issues and accumulation of harmful substances), added salt and sugar (contributing to high blood pressure, obesity, and diabetes), artificial sweeteners (causing gastrointestinal problems, allergic reactions, headaches, and metabolic disturbances), cheap seeds/grains (reducing nutritional value and introducing contaminants), aflatoxins (mold toxins linked to liver cancer and other health issues), hydrogenated oils (containing trans fats that increase heart disease risk), sodium nitrite (potentially forming carcinogenic nitrosamines), formalin (causing severe health problems including cancer), and synthetic preservatives (potentially causing allergic reactions and damaging detoxification mechanisms); detection methods include visual inspection, lab testing, taste tests, and microscopic examination; prevention involves trusted sourcing, consumer awareness, regulatory oversight, and proper storage.\n\n"
-    f" ** If given products is about **rice** then include this as context: Rice is susceptible to adulteration impacting quality, safety, and nutrition via artificial colorants (potentially causing toxicity, allergies, cancer), starch additives (leading to nutritional degradation, digestive issues, chemical contamination), excessive polishing (resulting in nutrient loss and higher glycemic index), artificial fragrances (potentially causing respiratory issues, allergies, toxicity), foreign particles (causing physical injury, chemical contamination, illness), and arsenic contamination (increasing cancer and neurological/developmental risks); prevention involves organic farming, consumer awareness (labeling, trusted sources, washing/soaking), government regulations (pesticides, heavy metals), and improved processing (filtration, less polishing).\n\n"
-    f" ** If given product is about **eggs** then include this as context :Eggs are susceptible to adulteration with substances like water (increasing weight/contamination risk), artificial coloring (toxicity/carcinogenicity), malachite green (carcinogen/organ toxicity), antibiotics (resistance/hormonal disruption), formaldehyde (carcinogen/toxicity), hydrogen peroxide (toxicity), and shell coatings (contamination/masking defects), posing health risks like cancer, antibiotic resistance, and allergic reactions; detection involves testing, inspection, and smell, while prevention relies on trusted sourcing, regulation, and awareness.\n\n"
-    f" ** If given product ia about **honey** then include this as context: Proper honey storage involves maintaining low moisture (below 18%), temperatures between 50-77°F (avoiding >104°F and extreme cold), minimal light exposure (using opaque containers), airtight containers to prevent oxidation and contamination, and using glass or food-grade plastic containers (avoiding reactive metals and porous materials); improper storage can lead to fermentation, nutrient loss, contamination, and crystallization (reversible by gentle warming); best practices include airtight containers, cool/dry/dark storage, hygiene, and labeling, allowing for an indefinite shelf life when done correctly.\n\n"
+    f"  **Adulterants in Milk (Only when questions are asked about Diary products):** Milk is susceptible to adulteration with substances like water (dilutes nutrients, introduces microbes), starch (indigestion), detergents (gastrointestinal irritation, cancer risk), urea (kidney damage), formalin (toxic, carcinogenic), ammonium sulfate (organ damage), sodium carbonate/bicarbonate (digestive problems), synthetic milk (toxic residues), glucose/sugar (obesity, diabetes, cavities), hydrogen peroxide (toxic, cellular damage), and neutralizers (gastrointestinal irritation). These adulterants are added for economic gain or to increase shelf life. Detection methods include chemical tests, advanced techniques (chromatography, spectroscopy), and milk analyzers. Prevention relies on regulatory oversight, consumer awareness, and technological innovations. This emphasizes the need to scrutinize agricultural inputs, post-harvest treatments, seed quality, and all stages of the production process for potential contamination and adulteration.\n\n"
+    f"  **If given products is about **Nuts** then include this as context**: Nuts are frequently adulterated to increase profit or shelf life with substances like artificial colorants (potentially causing allergic reactions, hyperactivity, and cancer), wax coatings (leading to digestive issues and accumulation of harmful substances), added salt and sugar (contributing to high blood pressure, obesity, and diabetes), artificial sweeteners (causing gastrointestinal problems, allergic reactions, headaches, and metabolic disturbances), cheap seeds/grains (reducing nutritional value and introducing contaminants), aflatoxins (mold toxins linked to liver cancer and other health issues), hydrogenated oils (containing trans fats that increase heart disease risk), sodium nitrite (potentially forming carcinogenic nitrosamines), formalin (causing severe health problems including cancer), and synthetic preservatives (potentially causing allergic reactions and damaging detoxification mechanisms); detection methods include visual inspection, lab testing, taste tests, and microscopic examination; prevention involves trusted sourcing, consumer awareness, regulatory oversight, and proper storage.\n\n"
+    f"  **If given products is about **rice** then include this as context**: Rice is susceptible to adulteration impacting quality, safety, and nutrition via artificial colorants (potentially causing toxicity, allergies, cancer), starch additives (leading to nutritional degradation, digestive issues, chemical contamination), excessive polishing (resulting in nutrient loss and higher glycemic index), artificial fragrances (potentially causing respiratory issues, allergies, toxicity), foreign particles (causing physical injury, chemical contamination, illness), and arsenic contamination (increasing cancer and neurological/developmental risks); prevention involves organic farming, consumer awareness (labeling, trusted sources, washing/soaking), government regulations (pesticides, heavy metals), and improved processing (filtration, less polishing).\n\n"
+    f"  **If given product is about **eggs** then include this as context** :Eggs are susceptible to adulteration with substances like water (increasing weight/contamination risk), artificial coloring (toxicity/carcinogenicity), malachite green (carcinogen/organ toxicity), antibiotics (resistance/hormonal disruption), formaldehyde (carcinogen/toxicity), hydrogen peroxide (toxicity), and shell coatings (contamination/masking defects), posing health risks like cancer, antibiotic resistance, and allergic reactions; detection involves testing, inspection, and smell, while prevention relies on trusted sourcing, regulation, and awareness.\n\n"
+    f"  **If given product ia about **honey** then include this as context**: Proper honey storage involves maintaining low moisture (below 18%), temperatures between 50-77°F (avoiding >104°F and extreme cold), minimal light exposure (using opaque containers), airtight containers to prevent oxidation and contamination, and using glass or food-grade plastic containers (avoiding reactive metals and porous materials); improper storage can lead to fermentation, nutrient loss, contamination, and crystallization (reversible by gentle warming); best practices include airtight containers, cool/dry/dark storage, hygiene, and labeling, allowing for an indefinite shelf life when done correctly.\n\n"
     f"**Key Objectives:**\n"
     f"1. Investigate product-specific attributes such as health benefits, safety, and unique health propositions, with a focus on potential contamination and chemical residues originating from the specified inputs and treatments.\n"
     f"2. Assess good practices, compliance with regulations, certifications, and ethical practices in business, specifically related to the use of agricultural inputs, post-harvest treatments, seed sourcing, and ripening methods, paying close attention to the potential health and environmental impacts described in the provided text.\n"
@@ -349,7 +390,7 @@ else:
     f"6. Capture information regarding the future of company and its commitments to health and sustainability improvements, particularly in relation to minimizing or eliminating the use of harmful substances identified in the provided text.\n\n"
     f"7. Generate Questions in form such that my client has to answer about his product.\n"
     f"8. Don't Use symbols of currency. Rather use Name of Currency in response.\n"
-    f"9. Don't use some special symbols(like smart apostrophe) that cannot be encoded using codec."
+    f"9. Don't use some special symbols(like smart apostrophe) that cannot be encoded using codec.\n"
     f"10. Use good Introduction and conclusion.\n"
     f"11. Question should be of top Quality.\n"
     f"12. Include scientific, geographic, different stages of production process with more emphasis while generating questions.\n"
@@ -360,7 +401,7 @@ else:
     f"17. Questions should be in minimum 40 words and very descriptive and explained.\n\n"
     f"18. Generate questions in such a way that We are assuming that the producers is all clear, but we are going to question them deeply to remove all doubt. Don't start questions with validatory terms.\n"
     f"19. Be very strict to given instructions.Generate exact number of questions given in instructions."
-)
+)               
                 def generate_docx(questions):
                    """
                    Generates a DOCX file with questions and inputs and saves it to disk.
@@ -414,11 +455,6 @@ else:
                    docx_file,
                    file_name="questionnaire_report.docx",
         )
-
-                '''if st.session_state.get('allow_admin_download'):
-                   st.subheader("Admin Downloads")
-                   st.download_button("Download CSV of Generated Questions", data=open("generated_questions.csv", "rb"), file_name="generated_questions.csv", mime="text/csv")
-                   st.download_button("Download CSV of Registered Users", data=open("users_data.csv", "rb"), file_name="users_data.csv", mime="text/csv")'''
               
             except Exception as e:
                 st.error(f"Error generating questions: {e}")
