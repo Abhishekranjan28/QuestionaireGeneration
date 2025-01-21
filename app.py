@@ -219,23 +219,6 @@ else:
     )
 
     extracted_text = ""
-    if uploaded_files:
-        for uploaded_file in uploaded_files:
-            file_extension = uploaded_file.name.split(".")[-1].lower()
-            try:
-                if file_extension == "pdf":
-                    with fitz.open(stream=uploaded_file.read(), filetype="pdf") as pdf_file:
-                        for page_num in range(pdf_file.page_count):
-                            page = pdf_file[page_num]
-                            extracted_text += page.get_text("text") + "\n"
-                elif file_extension == "txt":
-                    extracted_text += uploaded_file.read().decode("utf-8") + "\n"
-                elif file_extension == "docx":
-                    doc = Document(uploaded_file)
-                    for para in doc.paragraphs:
-                        extracted_text += para.text + "\n"
-            except Exception as e:
-                st.error(f"Error processing file '{uploaded_file.name}': {str(e)}")
 
     st.markdown(
     """
@@ -285,23 +268,6 @@ else:
 )
 
     image_context = ""
-    if uploaded_images:
-        image_paths = []
-        st.markdown("<h4>Uploaded Images:</h4>", unsafe_allow_html=True)
-        for idx, uploaded_image in enumerate(uploaded_images, start=1):
-
-          image = Image.open(uploaded_image)
-          st.image(image, caption=f"Image {idx}", use_column_width=True)
-        
-          with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as temp_file:
-             image.save(temp_file.name)
-             image_paths.append(temp_file.name)
-    
-    
-        image_context = (
-        "Images related to the product/company have been uploaded. File paths:\n" +
-        "\n".join(image_paths)
-    )
 
     st.markdown(
     """
@@ -354,6 +320,44 @@ else:
                        combined_article = "\n".join([article for _, article in scraped_data])
                        st.markdown(f"##### Combined Article from All Websites:")
                        st.write(combined_article)
+
+                if uploaded_images:
+                  image_paths = []
+                  st.markdown("<h4>Uploaded Images:</h4>", unsafe_allow_html=True)
+                  for idx, uploaded_image in enumerate(uploaded_images, start=1):
+
+                    image = Image.open(uploaded_image)
+                    st.image(image, caption=f"Image {idx}", use_column_width=True)
+        
+                  with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as temp_file:
+                    image.save(temp_file.name)
+                    image_paths.append(temp_file.name)
+    
+    
+                  image_context = (
+                    "Images related to the product/company have been uploaded. File paths:\n" +
+                    "\n".join(image_paths)
+                  )
+
+
+                if uploaded_files:
+                  for uploaded_file in uploaded_files:
+                    file_extension = uploaded_file.name.split(".")[-1].lower()
+                    try:
+                      if file_extension == "pdf":
+                        with fitz.open(stream=uploaded_file.read(), filetype="pdf") as pdf_file:
+                          for page_num in range(pdf_file.page_count):
+                            page = pdf_file[page_num]
+                            extracted_text += page.get_text("text") + "\n"
+                      elif file_extension == "txt":
+                        extracted_text += uploaded_file.read().decode("utf-8") + "\n"
+                      elif file_extension == "docx":
+                       doc = Document(uploaded_file)
+                       for para in doc.paragraphs:
+                        extracted_text += para.text + "\n"
+                    except Exception as e:
+                       st.error(f"Error processing file '{uploaded_file.name}': {str(e)}")
+
                 prompt = (
     f"Generate a comprehensive questionnaire tailored for the product brand '{product_brand}', manufactured by '{company_name}', "
     f"with a detailed description as '{product_description}', produced in '{production_location}', targeting the '{geographical_area}' geographical area. "
@@ -385,6 +389,7 @@ else:
     f"  **If given product is about **Poultry Products like Chicken** then include this as context** :Malpractices across the poultry industry, from breeding and feeding to processing and marketing, involving unethical practices like substandard feed, hormone/antibiotic use, overcrowding, chemical contamination, mislabeling, and improper waste disposal, compromise product quality, endanger consumer health through antibiotic resistance, food poisoning, and chronic illnesses, and harm the environment, necessitating stronger regulations, education, traceability, sustainable practices, and rigorous testing. **Improper Storage in Poultry products like Chicken**Improper storage of poultry meat and eggs, including inadequate humidity/ventilation, cross-contamination, temperature abuse (freezer burn, improper refrigeration), chemical preservatives (formalin), dirty/cracked shells, moisture loss, and temperature fluctuations, leads to loss of nutritional quality, microbial growth (Salmonella, E. coli, Listeria, Campylobacter), spoilage, increased food waste, and human health impacts like chemical toxicity, foodborne illnesses (salmonellosis, listeriosis, campylobacteriosis), antibiotic resistance, and allergic reactions, necessitating consumer awareness, proper refrigeration, regular monitoring, and hygienic packaging.\n\n"
     f"  **If given product is about Poultry Products (meat and eggs) then include this as context**: Malpractices in poultry product transportation, including improper cold chain maintenance (temperature abuse, power failures, delays), cross-contamination (contaminated containers, improper segregation, packaging failures), and mishandling (breakage, inadequate containers, overcrowding), compromise product quality and safety, leading to spoilage, microbial contamination (Salmonella, Listeria), and foodborne illnesses (salmonellosis, listeriosis). Solutions involve hygienic transport practices, cold chain logistics, handling guidelines, regulatory compliance, and sustainable measures to minimize risks and ensure consumer health and safety.\n\n"
     f"  **If given product is about Poultry Products like Eggs then include this as context**: Forced molting in poultry, a practice inducing egg-laying cessation through feed restriction, light manipulation, or nutritional modification, causes significant animal welfare concerns including hunger, stress,  physical suffering, high mortality, immune suppression, and bone health issues.  This clashes with natural molting cycles, raising ethical contradictions in animal husbandry. While unregulated in many areas due to economic benefits, growing consumer awareness and stricter regulations in some regions are driving a shift towards welfare-friendly alternatives like selective breeding, natural molting, and improved management practices.\n\n"
+    f"  **If given product is about Poultry Products like Chicken and Eggs then include this as context**:  High cholesterol in poultry, stemming from biological factors (species, organs), feeding practices (rich-fat diets, imbalances), farming practices (lack of exercise, selective breeding), and processing/cooking methods (deep frying, skin retention), poses human health risks (cardiovascular disease, obesity, chronic illnesses) and economic challenges for the poultry industry.  Mitigation strategies include nutritional interventions (low-fat diets, additives, omega-3s, enzyme supplementation), sustainable farming (selective breeding, free-range systems), post-harvest measures (discarding fat/skin, healthy cooking), genetic approaches (gene editing, modification), consumer education (lean cuts, cooking methods), and regulatory measures (feed quality monitoring, certifications).\n\n"
     f"**Key Objectives:**\n"
     f"1. Investigate product-specific attributes such as health benefits, safety, and unique health propositions, with a focus on potential contamination and chemical residues originating from the specified inputs and treatments.\n"
     f"2. Assess good practices, compliance with regulations, certifications, and ethical practices in business, specifically related to the use of agricultural inputs, post-harvest treatments, seed sourcing, and ripening methods, paying close attention to the potential health and environmental impacts described in the provided text.\n"
