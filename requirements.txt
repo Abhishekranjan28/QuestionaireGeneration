@@ -11,4 +11,3 @@ youtube-transcript-api
 nltk
 requests
 pillow
-PyPDF2
