@@ -12,3 +12,4 @@ nltk
 requests
 pillow
 PyPDF2
+psycopg2
