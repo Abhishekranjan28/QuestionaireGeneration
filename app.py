@@ -379,10 +379,6 @@ else:
                     "Images related to the product/company have been uploaded. File paths:\n" +
                     "\n".join(image_paths)
                   )
-
-                '''file_path = "Prompt.txt"
-                with open(file_path, "r") as file:
-                  additional_content = file.read()'''
                 
                 conn = connect_db()
                 if conn:
