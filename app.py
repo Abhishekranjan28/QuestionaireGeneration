@@ -13,7 +13,7 @@ import csv
 import requests
 from bs4 import BeautifulSoup
 from PIL import Image
-from Automation import process_uploaded_file, summarize_text, append_to_text_file
+from Automation import connect_db,create_table,save_summary_to_db,process_uploaded_file,summarize_text
 
 load_dotenv()
 
@@ -241,30 +241,26 @@ else:
             except Exception as e:
                 st.error(f"Error processing file '{uploaded_file.name}': {str(e)}")
     
-    elif mode=="Upload files for Training":
-      uploaded_file = st.file_uploader(
-        "Upload files (PDF, text, or Word documents):",
-        type=["pdf", "txt", "docx"],
-        accept_multiple_files=False,
-    )
-      if uploaded_file:
-       if st.button("Train"):
-        content = process_uploaded_file(uploaded_file)
+    if mode == "Upload files for Training":
+        uploaded_file = st.file_uploader(
+            "Upload files (PDF, text, or Word documents):",
+            type=["pdf", "txt", "docx"],
+            accept_multiple_files=False,
+        )
+        if uploaded_file:
+            if st.button("Train"):
+                content = process_uploaded_file(uploaded_file)
 
-        if not content.strip():
-         st.warning("The uploaded file appears to be empty or unreadable.")
-        else:
-         st.write("File successfully read. Summarizing the content...")
+                if not content.strip():
+                    st.warning("The uploaded file appears to be empty or unreadable.")
+                else:
+                    st.write("File successfully read. Summarizing the content...")
+                    summary = summarize_text(content)
 
-         summary = summarize_text(content)
-
-         if summary:
-
-            prompt_file_path = append_to_text_file(uploaded_file.name, summary)
-
-            st.success(f"Hurray !! Files is Processed and updated to model Successfully !!")
-
-
+                    if summary:
+                        save_summary_to_db(summary)
+                        st.success("Hurray! File is processed and saved to the database successfully!")
+      
     st.markdown(
     """
     <h1 style='font-size:20px; color:black;'>Additional Information</h1>
@@ -384,9 +380,25 @@ else:
                     "\n".join(image_paths)
                   )
 
-                file_path = "Prompt.txt"
+                '''file_path = "Prompt.txt"
                 with open(file_path, "r") as file:
-                  additional_content = file.read()
+                  additional_content = file.read()'''
+                
+                conn = connect_db()
+                if conn:
+                    cursor = conn.cursor()
+                    try:
+                      cursor.execute("SELECT summary FROM summaries")
+                      rows = cursor.fetchall()
+                      if rows:
+                         additional_content = "\n".join([f"{idx}. {row[0]}" for idx, row in enumerate(rows, start=1)])
+                      else:
+                        st.info("No summaries found in the database.")
+                    except Exception as e:
+                        st.error(f"Error retrieving summaries: {e}")
+                    finally:
+                      cursor.close()
+                      conn.close()
     
                 prompt = (
         f"Generate a comprehensive questionnaire tailored for the product brand '{product_brand}', manufactured by '{company_name}', "
@@ -400,9 +412,51 @@ else:
         f"**Instructions:**\n"
         f"- Generate {2*num_questions // 3} short-answer questions, {num_questions // 6} multiple-choice questions (with 4 options each), "
         f"  and {num_questions//6} binary (Yes/No) questions. Generate the exact given number of questions.\n"
-        f"{additional_content}"
+            f"**Key Objectives:**\n"
+    f"1. Investigate product-specific attributes such as health benefits, safety, and unique health propositions, with a focus on potential contamination and chemical residues originating from the specified inputs and treatments.\n"
+    f"2. Assess good practices, compliance with regulations, certifications, and ethical practices in business, specifically related to the use of agricultural inputs, post-harvest treatments, seed sourcing, and ripening methods, paying close attention to the potential health and environmental impacts described in the provided text.\n"
+    f"3. Understand the current and planned market presence, brand perception, and pricing strategy, considering consumer concerns about food safety and environmental impact, particularly concerning the issues highlighted in the provided text.\n"
+    f"4. Inquire about production challenges, competitor analysis, and growth-oriented goals, with an emphasis on mitigating risks related to contamination and chemical residues, drawing on the information provided about specific hazards.\n"
+    f"5. Gather detailed insights into sustainable practices, including resource efficiency, waste management, and the reduction of harmful chemical usage, with reference to the specific chemicals and practices mentioned in the text.\n"
+    f"6. Capture information regarding the future of company and its commitments to health and sustainability improvements, particularly in relation to minimizing or eliminating the use of harmful substances identified in the provided text.\n\n"
+    f"7. Generate Questions in form such that my client has to answer about his product.\n"
+    f"8. Don't Use symbols of currency. Rather use Name of Currency in response.\n"
+    f"9. Don't use some special symbols(like smart apostrophe) that cannot be encoded using codec.\n"
+    f"10. Use good Introduction and conclusion.\n"
+    f"11. Question should be of top Quality.\n"
+    f"12. Include scientific, geographic, different stages of production process with more emphasis while generating questions.\n"
+    f"13. Questions should be detailed and interesting to answer.\n"
+    f"14. Put all Questions of similar topic at once under a sub-heading.\n"
+    f"15. Generate questions on different processes of making the product.Ex: Different stages of crop production,processing in industries etc.\n"
+    f"16. Also add the topic along with the generated questions( examples like: Health Attribute, production type, sustainability, marketing etc.)\n"
+    f"17. Questions should be in minimum 40 words and very descriptive and explained.\n\n"
+    f"18. Generate questions in such a way that We are assuming that the producers is all clear, but we are going to question them deeply to remove all doubt. Don't start questions with validatory terms.\n"
+    f"19. Be very strict to given instructions.Generate exact number of questions given in instructions.\n"
+    f"- Ensure questions are focused on product quality, compliance, good practices, brand positioning, and sustainability, with a strong emphasis on the following areas, drawing specific details from the provided text:\n"
+    f"  **Harmful agricultural inputs:** (Pesticides: Organophosphates, Carbamates, Synthetic Pyrethroids, Organochlorines, Neonicotinoids; Herbicides: Glyphosate; Fungicides: Mancozeb; Fertilizers: Synthetic Nitrogen, Phosphorus, Potassium; PGRs: Synthetic Hormones, Non-compliant Auxins/Cytokinins; Soil Conditioners: Heavy Metals, Sewage Sludge; Animal Feed Additives: Antibiotics, Hormonal Additives; Contaminated Irrigation Water: Industrial Chemicals, Pesticide Runoff)\n"
+    f"  **Post-harvest treatments:** (Synthetic Preservatives: Sulfur Dioxide, Benzoates, Sorbates; Wax Coatings: Natural/Synthetic; Synthetic Fumigants: Methyl Bromide, Phosphine Gas; Chemical Treatments for Disease Prevention: Imazalil, Thiabendazole, Chlorine Washes; Cold Storage/MAP: Chemical Leaching, Nutrient Loss; Irradiation: Radiolytic Products, Nutrient Loss; Hazardous Packaging: Plasticizers, BPA)\n"
+    f"  **Contaminated seeds:** (Chemical Treatments: Carbendazim, Captan, Thiram; Pathogenic Contamination: Fungi, Bacteria, Viruses; Environmental Exposure: Industrial Pollutants, Heavy Metals; Improper Storage/Handling; Adulteration)\n"
+    f"  **Chemical ripening agents:** (Calcium Carbide: Arsenic, Phosphorus; Ethylene Gas; Ethephon; Methyl Jasmonate)\n\n"
+    f"  **Harmful Effects of Additives and Antibiotics in Livestock Production on Human Health:(If the production type is of Livestock then include it otherwise don't)** This document outlines the risks associated with the use of hormonal additives (estrogen, testosterone, progesterone, growth-promoting steroids) and antibiotics in livestock feed. Hormonal additives can cause endocrine disruption (hormonal imbalances, reproductive issues, developmental abnormalities, increased risk of hormone-dependent cancers), cardiovascular risks, obesity, metabolic disorders, and neurological disorders. Environmental contamination from these additives can further impact human health through water and soil contamination and bioaccumulation. Antibiotic use contributes to antibiotic resistance, allergic reactions, disruption of gut microbiota, and potential carcinogenic and toxic effects. Mitigation strategies include improved animal husbandry, use of probiotics, prebiotics, and phytogenic feed additives, stricter regulations, and increased consumer awareness.\n\n"
+    f"  **Harmful Effects of Contaminated Irrigation Water Due to Harmful Agricultural Practices**: This document highlights the detrimental impact of harmful agricultural practices on irrigation water quality, posing risks to human health and the environment. Key contaminants include pesticide runoff (Organochlorines, Organophosphates, Carbamates, Neonicotinoids), industrial chemicals (Arsenic, Mercury, Cadmium, Lead), fertilizer leaching (Nitrates), animal waste (Pathogens, Hormonal Residues), contaminated seeds (Thiram, Captan), and plastic mulches (Microplastics). These contaminants can cause neurological disorders, endocrine disruption, gastrointestinal and respiratory issues, carcinogenic risks, and chronic diseases in humans. Environmentally, they contribute to eutrophication, biodiversity loss, soil degradation, and bioaccumulation. Mitigation strategies include sustainable farming practices (IPM, organic farming), advanced irrigation techniques (drip irrigation, water filtration), proper waste management, monitoring and regulation, and education and awareness programs.\n\n"
+    f"  **Adulterated Organic Manure Concerns:** Adulterated organic manures, containing impurities like heavy metals and industrial waste, negatively impact soil health (contamination, reduced microbial activity, altered pH), crop growth (toxicity, poor yield, residual effects), human health (food safety, pathogen transmission, chemical exposure), and the environment (water and air pollution, soil erosion). This leads to economic losses and erodes trust in organic practices. Stringent quality control, certification, and farmer awareness are crucial.\n\n"
+    f"  **Harmful Effects of Chemical Residues on Human Health:** Chemical residues from pesticides (insecticides, fungicides, rodenticides) pose significant health risks. Acute exposure can cause neurological effects (headaches, confusion), respiratory issues (breathing difficulty), gastrointestinal problems (nausea, vomiting), and skin/eye irritation. Chronic exposure is linked to carcinogenic problems (e.g., DDT and cancer), endocrine disruption (e.g., chlorpyrifos and thyroid imbalances), neurotoxicity (e.g., organophosphates and memory loss), reproductive/developmental effects (e.g., dioxins and birth defects), and immunotoxicity (e.g., lindane and decreased white blood cell count). Residues are found in fruits, vegetables, meat, dairy, and water. Infants, children, pregnant women, farmers, and the elderly are particularly vulnerable. Prevention and mitigation strategies include regulatory measures (MRLs, bans), organic/sustainable farming (IPM), consumer awareness (washing produce, choosing organic), monitoring/testing, and education/training.\n\n"
+    f"  **Harmful Effects of Plastics in Agriculture and the Food Industry:** The extensive use of plastics in agriculture and the food industry leads to significant environmental and health risks. Environmentally, plastics cause soil pollution (reduced aeration, water infiltration, and microbial activity), non-biodegradability (landfill accumulation), water pollution (microplastic contamination), and air pollution (from burning). In agriculture, plastics contribute to microplastic accumulation in soil, reduced soil productivity, and irrigation system blockages. In the food industry, they cause food contamination (chemical leaching of BPA and phthalates), and increased waste generation. Health impacts include chemical exposure and toxicity (endocrine disruption from BPA and phthalates, potential carcinogenicity from styrene), microplastic ingestion (inflammation, toxicity from attached chemicals, cellular damage), inhalation of airborne plastic particles (respiratory issues, neurological and developmental effects), and bioaccumulation in seafood (liver damage, neurological issues). Plastics also contribute to climate change through greenhouse gas emissions and fossil fuel dependence. Mitigation strategies include biodegradable alternatives, plastic recycling and reuse, government regulations, awareness campaigns, and adopting a circular economy.\n\n"
+    f"  **Adulterants in Milk (Only when questions are asked about Diary products):** Milk is susceptible to adulteration with substances like water (dilutes nutrients, introduces microbes), starch (indigestion), detergents (gastrointestinal irritation, cancer risk), urea (kidney damage), formalin (toxic, carcinogenic), ammonium sulfate (organ damage), sodium carbonate/bicarbonate (digestive problems), synthetic milk (toxic residues), glucose/sugar (obesity, diabetes, cavities), hydrogen peroxide (toxic, cellular damage), and neutralizers (gastrointestinal irritation). These adulterants are added for economic gain or to increase shelf life. Detection methods include chemical tests, advanced techniques (chromatography, spectroscopy), and milk analyzers. Prevention relies on regulatory oversight, consumer awareness, and technological innovations. This emphasizes the need to scrutinize agricultural inputs, post-harvest treatments, seed quality, and all stages of the production process for potential contamination and adulteration.\n\n"
+    f"  **If given products is about **Nuts** then include this as context**: Nuts are frequently adulterated to increase profit or shelf life with substances like artificial colorants (potentially causing allergic reactions, hyperactivity, and cancer), wax coatings (leading to digestive issues and accumulation of harmful substances), added salt and sugar (contributing to high blood pressure, obesity, and diabetes), artificial sweeteners (causing gastrointestinal problems, allergic reactions, headaches, and metabolic disturbances), cheap seeds/grains (reducing nutritional value and introducing contaminants), aflatoxins (mold toxins linked to liver cancer and other health issues), hydrogenated oils (containing trans fats that increase heart disease risk), sodium nitrite (potentially forming carcinogenic nitrosamines), formalin (causing severe health problems including cancer), and synthetic preservatives (potentially causing allergic reactions and damaging detoxification mechanisms); detection methods include visual inspection, lab testing, taste tests, and microscopic examination; prevention involves trusted sourcing, consumer awareness, regulatory oversight, and proper storage.\n\n"
+    f"  **If given products is about **rice** then include this as context**: Rice is susceptible to adulteration impacting quality, safety, and nutrition via artificial colorants (potentially causing toxicity, allergies, cancer), starch additives (leading to nutritional degradation, digestive issues, chemical contamination), excessive polishing (resulting in nutrient loss and higher glycemic index), artificial fragrances (potentially causing respiratory issues, allergies, toxicity), foreign particles (causing physical injury, chemical contamination, illness), and arsenic contamination (increasing cancer and neurological/developmental risks); prevention involves organic farming, consumer awareness (labeling, trusted sources, washing/soaking), government regulations (pesticides, heavy metals), and improved processing (filtration, less polishing).\n\n"
+    f"  **If given product is about **eggs** then include this as context** :Eggs are susceptible to adulteration with substances like water (increasing weight/contamination risk), artificial coloring (toxicity/carcinogenicity), malachite green (carcinogen/organ toxicity), antibiotics (resistance/hormonal disruption), formaldehyde (carcinogen/toxicity), hydrogen peroxide (toxicity), and shell coatings (contamination/masking defects), posing health risks like cancer, antibiotic resistance, and allergic reactions; detection involves testing, inspection, and smell, while prevention relies on trusted sourcing, regulation, and awareness.\n\n"
+    f"  **If given product ia about **honey** then include this as context**: Proper honey storage involves maintaining low moisture (below 18%), temperatures between 50-77°F (avoiding >104°F and extreme cold), minimal light exposure (using opaque containers), airtight containers to prevent oxidation and contamination, and using glass or food-grade plastic containers (avoiding reactive metals and porous materials); improper storage can lead to fermentation, nutrient loss, contamination, and crystallization (reversible by gentle warming); best practices include airtight containers, cool/dry/dark storage, hygiene, and labeling, allowing for an indefinite shelf life when done correctly.\n\n"
+    f"  **If given product is about **Fish** then include this as context** :Fish adulteration with chemicals (formalin, sodium benzoate, dyes), water/chemical injections, pesticides, heavy metals, phosphates, and antibiotics poses serious health risks like cancer, neurological damage, allergic reactions, and organ damage, requiring consumer vigilance, trusted sourcing, and strong regulatory measures.\n\n"
+    f"  **If given product is about **Poultry Products like Chicken** then include this as context** :Malpractices across the poultry industry, from breeding and feeding to processing and marketing, involving unethical practices like substandard feed, hormone/antibiotic use, overcrowding, chemical contamination, mislabeling, and improper waste disposal, compromise product quality, endanger consumer health through antibiotic resistance, food poisoning, and chronic illnesses, and harm the environment, necessitating stronger regulations, education, traceability, sustainable practices, and rigorous testing. **Improper Storage in Poultry products like Chicken**Improper storage of poultry meat and eggs, including inadequate humidity/ventilation, cross-contamination, temperature abuse (freezer burn, improper refrigeration), chemical preservatives (formalin), dirty/cracked shells, moisture loss, and temperature fluctuations, leads to loss of nutritional quality, microbial growth (Salmonella, E. coli, Listeria, Campylobacter), spoilage, increased food waste, and human health impacts like chemical toxicity, foodborne illnesses (salmonellosis, listeriosis, campylobacteriosis), antibiotic resistance, and allergic reactions, necessitating consumer awareness, proper refrigeration, regular monitoring, and hygienic packaging.\n\n"
+    f"  **If given product is about Poultry Products (meat and eggs) then include this as context**: Malpractices in poultry product transportation, including improper cold chain maintenance (temperature abuse, power failures, delays), cross-contamination (contaminated containers, improper segregation, packaging failures), and mishandling (breakage, inadequate containers, overcrowding), compromise product quality and safety, leading to spoilage, microbial contamination (Salmonella, Listeria), and foodborne illnesses (salmonellosis, listeriosis). Solutions involve hygienic transport practices, cold chain logistics, handling guidelines, regulatory compliance, and sustainable measures to minimize risks and ensure consumer health and safety.\n\n"
+    f"  **If given product is about Poultry Products like Eggs then include this as context**: Forced molting in poultry, a practice inducing egg-laying cessation through feed restriction, light manipulation, or nutritional modification, causes significant animal welfare concerns including hunger, stress,  physical suffering, high mortality, immune suppression, and bone health issues.  This clashes with natural molting cycles, raising ethical contradictions in animal husbandry. While unregulated in many areas due to economic benefits, growing consumer awareness and stricter regulations in some regions are driving a shift towards welfare-friendly alternatives like selective breeding, natural molting, and improved management practices.\n\n"
+    f"  **If given product is about Poultry Products like Chicken and Eggs then include this as context**:  High cholesterol in poultry, stemming from biological factors (species, organs), feeding practices (rich-fat diets, imbalances), farming practices (lack of exercise, selective breeding), and processing/cooking methods (deep frying, skin retention), poses human health risks (cardiovascular disease, obesity, chronic illnesses) and economic challenges for the poultry industry.  Mitigation strategies include nutritional interventions (low-fat diets, additives, omega-3s, enzyme supplementation), sustainable farming (selective breeding, free-range systems), post-harvest measures (discarding fat/skin, healthy cooking), genetic approaches (gene editing, modification), consumer education (lean cuts, cooking methods), and regulatory measures (feed quality monitoring, certifications).\n\n"
+    f"  **If given product is about Mushrooms then include this as context**: Mushroom quality is compromised by microbial and fungal contamination, physical damage (bruising, cap damage), improper temperature and humidity control, short shelf life leading to nutrient loss and color/texture changes, pest infestations (insects, mites), pesticide residues, allergenic reactions (spores, proteins), toxic wild mushroom contamination, and poor water/substrate quality, necessitating improved cultivation, handling, storage, and regulatory compliance for safe, high-quality products.\n\n"
+    f"  **If given product is about Dates then include this as context**: Unethical weight manipulation techniques in the date industry, including sugar syrup dipping, saltwater injection, excessive rehydration, improper drying, and addition of glycerin, polyethylene glycol, sand, stone powder, or starch, increase weight but compromise quality, causing health risks like toxicity, microbial contamination (aflatoxins), nutritional imbalance, and consumer deception.  Stringent quality control, consumer education, clear labeling, and legal enforcement are crucial to ensure safe and high-quality dates.\n\n"
+    f"  **If given product is about Wax Coatings in the Date Industry then include this as context**:  The use of wax coatings (natural like beeswax, carnauba; synthetic like polyethylene) on dates enhances appearance and shelf life but poses health risks (chemical residues, digestive issues, toxicity), environmental concerns (non-biodegradable waxes, petroleum use), and regulatory challenges (lack of consistent standards).  Alternatives like edible coatings (aloe vera, starch, pectin) and bio-based polymers (chitosan) are needed to mitigate these negative impacts.\n\n"
+    f"{additional_content}"
     )           
-            
                 def generate_docx(questions):
                    """
                    Generates a DOCX file with questions and inputs and saves it to disk.
