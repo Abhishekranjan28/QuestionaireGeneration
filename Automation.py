@@ -1,10 +1,11 @@
 import os
-import requests
 import google.generativeai as genai
 from PyPDF2 import PdfReader
 from docx import Document
 from dotenv import load_dotenv
 import streamlit as st
+import psycopg2
+import pandas as pd
 
 load_dotenv()
 
@@ -14,6 +15,51 @@ if not GEMINI_API_KEY:
     st.stop()
 
 genai.configure(api_key=GEMINI_API_KEY)
+
+DATABASE_URL = os.getenv("RENDER_DB_URL")
+if not DATABASE_URL:
+    st.error("PostgreSQL connection string is not set in environment variables.")
+    st.stop()
+
+def connect_db():
+    try:
+        conn = psycopg2.connect(DATABASE_URL, sslmode="require")
+        return conn
+    except Exception as e:
+        st.error(f"Error connecting to the database: {e}")
+        return None
+
+def create_table():
+    conn = connect_db()
+    if conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS summaries (
+                id SERIAL PRIMARY KEY,
+                summary TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+def save_summary_to_db(summary):
+    conn = connect_db()
+    if conn:
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                INSERT INTO summaries (summary) 
+                VALUES (%s)
+            """, (summary,))
+            conn.commit()
+            st.success("Summary saved to the database successfully!")
+        except Exception as e:
+            st.error(f"Error saving summary to the database: {e}")
+        finally:
+            cursor.close()
+            conn.close()
 
 def process_uploaded_file(file):
     """
@@ -41,11 +87,10 @@ def summarize_text(content):
     """
     try:
         prompt = (
-        f"Summarize the entire text in one line by maintaining all the necessary information given.\n"
-        f"Include this line : If given product is about **Particular product given in text** then include this as context."
-        f"You can take example of this summary :If given product is about Poultry Products like Chicken then include this as context: Malpractices across the poultry industry, from breeding and feeding to processing and marketing, involving unethical practices like substandard feed, hormone/antibiotic use, overcrowding, chemical contamination, mislabeling, and improper waste disposal, compromise product quality, endanger consumer health through antibiotic resistance, food poisoning, and chronic illnesses, and harm the environment, necessitating stronger regulations, education, traceability, sustainable practices, and rigorous testing. Improper Storage in Poultry products like ChickenImproper storage of poultry meat and eggs, including inadequate humidity/ventilation, cross-contamination, temperature abuse (freezer burn, improper refrigeration), chemical preservatives (formalin), dirty/cracked shells, moisture loss, and temperature fluctuations, leads to loss of nutritional quality, microbial growth (Salmonella, E. coli, Listeria, Campylobacter), spoilage, increased food waste, and human health impacts like chemical toxicity, foodborne illnesses (salmonellosis, listeriosis, campylobacteriosis), antibiotic resistance, and allergic reactions, necessitating consumer awareness, proper refrigeration, regular monitoring, and hygienic packaging.\n\n "
-        f"Now summarize this : {content}"
-    )
+            f"Summarize the entire text in one line by maintaining all the necessary information given in approx 150 words.\n"
+            f"Include this line: **If given product is about **Product given in text**, then include this as context :**\n\n"
+            f"Now summarize this: {content}"
+        )
         model = genai.GenerativeModel("gemini-1.5-flash")
         response = model.generate_content(prompt)
 
@@ -53,16 +98,5 @@ def summarize_text(content):
         return summary
     except Exception as e:
         return f"Error generating summary: {str(e)}"
-
-def append_to_text_file(file_name, summary):
-    """
-    Appends the summary to the Prompt.txt file and returns the file path.
-    """
-    prompt_file_path = "Prompt.txt"
-
-    try:
-        with open(prompt_file_path, "a", encoding="utf-8") as f:
-            f.write(f"\n{summary}\n")
-        return prompt_file_path
-    except Exception as e:
-        return f"Error appending to file: {str(e)}"
+    
+create_table()
