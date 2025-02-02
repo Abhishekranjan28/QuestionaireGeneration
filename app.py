@@ -335,7 +335,7 @@ else:
         pdf.ln(10)
 
         for i, question in enumerate(questions, 1):
-           pdf.multi_cell(0, 10, f"{i}. {question}", ln=True)
+           pdf.multi_cell(0, 10, f"{question}", ln=True)
 
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
             pdf_output_path = tmp_file.name
