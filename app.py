@@ -368,7 +368,7 @@ else:
                   for idx, uploaded_image in enumerate(uploaded_images, start=1):
 
                     image = Image.open(uploaded_image)
-                    st.image(image, caption=f"Image {idx}", use_column_width=True)
+                    st.image(image, caption=f"Image {idx}", use_container_width=True)
         
                   with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as temp_file:
                     image.save(temp_file.name)
@@ -407,7 +407,7 @@ else:
         f"**Specific Constraints or Information:**\n{specific_constraints}\n\n"
         f"**Instructions:**\n"
         f"- Generate {2*num_questions // 3} Text-based responses type questions and {num_questions //3} Text + File Upload responses type questions. Divide the Questions in Two Sections 1. Text based Responses 2.Text and file upload responses.\n\n"
-        f"- **Tone of Questions should be Polite and Professional such as Questions should start with ***Please or Kindly***. Avoid using ***Can/could*** as starting words of Questions.**\n\n"
+        f"- **Tone of Questions should be Polite and Professional. Questions must start with ***Please or Kindly***.Strictly avoid using ***Can/could*** as starting words of Questions.**\n\n"
     f"**Key Objectives:**\n"
     f"1. Questions that require certificates or supporting documents to explicitly ask for file uploads.\n\n"
     f"2. Investigate product-specific attributes such as health benefits, safety, and unique health propositions, with a focus on potential contamination and chemical residues originating from the specified inputs and treatments.\n\n"
