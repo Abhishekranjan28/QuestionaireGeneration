@@ -370,9 +370,9 @@ else:
                     image = Image.open(uploaded_image)
                     st.image(image, caption=f"Image {idx}", use_container_width=True)
         
-                  with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as temp_file:
-                    image.save(temp_file.name)
-                    image_paths.append(temp_file.name)
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as temp_file:
+                      image.save(temp_file.name)
+                      image_paths.append(temp_file.name)
     
     
                   image_context = (
