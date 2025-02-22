@@ -357,26 +357,28 @@ else:
         max_value=200,
         value=30,
     )
-    
+
     def generate_pdf(questions):
-       pdf = FPDF()
-       pdf.add_page()
+        pdf = FPDF()
+        pdf.add_page()
 
-       pdf.add_font('Roboto', '', 'Roboto-Regular.ttf', uni=True)
-       pdf.add_font('Roboto-Bold', 'B', 'Roboto-Bold.ttf', uni=True)
-       pdf.set_font('Roboto', size=12)
+        pdf.add_font('Roboto', '', 'Roboto-Regular.ttf', uni=True)
+        pdf.add_font('Roboto-Bold', 'B', 'Roboto-Bold.ttf', uni=True)
+        pdf.set_font('Roboto', size=12) 
 
-       pdf.cell(200, 10, txt="Generated Questions", ln=True, align='C')
-       pdf.ln(10)
+        pdf.cell(200, 10, txt="Generated Questions", ln=True, align='C')
+        pdf.ln(10)
 
-       for index, question in enumerate(questions, start=1):  
-          pdf.multi_cell(0, 10, f"{question}")
+        for i, question in enumerate(questions, 1):
+           pdf.multi_cell(0, 10, f"{question}", ln=True)
 
-       with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
-           pdf_output_path = tmp_file.name
-           pdf.output(pdf_output_path)
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
+            pdf_output_path = tmp_file.name
+            pdf.output(pdf_output_path)
 
-       return pdf_output_path
+        return pdf_output_path
+    
+    
 
     if st.button("Generate Deep Questioning Questions"):
         if not company_name or not product_brand or not product_description or not production_location or not geographical_area:
