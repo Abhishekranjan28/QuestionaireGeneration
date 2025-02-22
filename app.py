@@ -13,7 +13,7 @@ import csv
 import requests
 from bs4 import BeautifulSoup
 from PIL import Image
-from Automation import connect_db,create_table,save_summary_to_db,process_uploaded_file,summarize_text
+from Automation import connect_db,create_tables,insert_food,insert_clothes,insert_cosmetics,process_uploaded_file,summarize_text
 
 load_dotenv()
 
@@ -113,6 +113,36 @@ def login_user(username, password):
     else:
         st.error("Invalid username or password")
         return False
+
+def save_summary_to_db(table_name,summary):
+    if table_name == "food":
+        insert_food(summary)
+    elif table_name == "clothes":
+        insert_clothes(summary)
+    elif table_name == "cosmetics":
+        insert_cosmetics(summary)
+    else:
+        st.error("Invalid table selection.")
+
+def fetch_summaries(table_name):
+    """Fetch summaries from the selected table."""
+    conn = connect_db()
+    if conn:
+        cursor = conn.cursor()
+        try:
+            cursor.execute(f"SELECT summary FROM {table_name}")
+            rows = cursor.fetchall()
+            if rows:
+                additional_content = "\n".join([f"{idx}. {row[0]}" for idx, row in enumerate(rows, start=1)])
+                return additional_content
+            else:
+                return "No summaries found in the database."
+        except Exception as e:
+            return f"Error retrieving summaries: {e}"
+        finally:
+            cursor.close()
+            conn.close()
+    return "Database connection failed."
 
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = cookies.get("logged_in") == "true"
@@ -247,6 +277,8 @@ else:
             type=["pdf", "txt", "docx"],
             accept_multiple_files=False,
         )
+        table_name = st.selectbox("Select the table to store the summary:", ["food", "clothes", "cosmetics"])
+
         if uploaded_file:
             if st.button("Train"):
                 content = process_uploaded_file(uploaded_file)
@@ -256,9 +288,11 @@ else:
                 else:
                     st.write("File successfully read. Summarizing the content...")
                     summary = summarize_text(content)
+                    st.write(summary)
 
                     if summary:
-                        save_summary_to_db(summary)
+                        st.write(summary)
+                        save_summary_to_db(table_name,summary)
                         st.success("Hurray! File is processed and saved to the database successfully!")
       
     st.markdown(
@@ -290,6 +324,7 @@ else:
         company_name = st.text_input("Enter the name of the company:")
         product_brand = st.text_input("Enter the product brand:")
         product_description = st.text_input("Enter the product description:")
+        category = st.selectbox("Select the product category:", ["food", "clothes", "cosmetics"])
     with col2:
         production_location = st.text_input("Enter the production location:")
         geographical_area = st.text_input("Enter the geographical market:")
@@ -324,26 +359,26 @@ else:
     )
     
     def generate_pdf(questions):
-        pdf = FPDF()
-        pdf.add_page()
+       pdf = FPDF()
+       pdf.add_page()
 
-        pdf.add_font('Roboto', '', 'Roboto-Regular.ttf', uni=True)
-        pdf.add_font('Roboto-Bold', 'B', 'Roboto-Bold.ttf', uni=True)
-        pdf.set_font('Roboto', size=12) 
+       pdf.add_font('Roboto', '', 'Roboto-Regular.ttf', uni=True)
+       pdf.add_font('Roboto-Bold', 'B', 'Roboto-Bold.ttf', uni=True)
+       pdf.set_font('Roboto', size=12)
 
-        pdf.cell(200, 10, txt="Generated Questions", ln=True, align='C')
-        pdf.ln(10)
+       pdf.cell(200, 10, txt="Generated Questions", ln=True, align='C')
+       pdf.ln(10)
 
-        for i, question in enumerate(questions, 1):
-           pdf.multi_cell(0, 10, f"{question}", ln=True)
+       for index, question in enumerate(questions, start=1):  
+          pdf.multi_cell(0, 10, f"{question}")
 
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
-            pdf_output_path = tmp_file.name
-            pdf.output(pdf_output_path)
+       with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
+           pdf_output_path = tmp_file.name
+           pdf.output(pdf_output_path)
 
-        return pdf_output_path
+       return pdf_output_path
 
-    if st.button("Generate Questions"):
+    if st.button("Generate Deep Questioning Questions"):
         if not company_name or not product_brand or not product_description or not production_location or not geographical_area:
             st.warning("Please fill out all required fields in the Product Details section.")
         else:
@@ -371,8 +406,8 @@ else:
                     st.image(image, caption=f"Image {idx}", use_container_width=True)
         
                     with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as temp_file:
-                      image.save(temp_file.name)
-                      image_paths.append(temp_file.name)
+                       image.save(temp_file.name)
+                       image_paths.append(temp_file.name)
     
     
                   image_context = (
@@ -380,21 +415,7 @@ else:
                     "\n".join(image_paths)
                   )
                 
-                conn = connect_db()
-                if conn:
-                    cursor = conn.cursor()
-                    try:
-                      cursor.execute("SELECT summary FROM summaries")
-                      rows = cursor.fetchall()
-                      if rows:
-                         additional_content = "\n".join([f"{idx}. {row[0]}" for idx, row in enumerate(rows, start=1)])
-                      else:
-                        st.info("No summaries found in the database.")
-                    except Exception as e:
-                        st.error(f"Error retrieving summaries: {e}")
-                    finally:
-                      cursor.close()
-                      conn.close()
+                summaries = fetch_summaries(category)
     
                 prompt = (
         f"Generate a comprehensive questionnaire tailored for the product brand '{product_brand}', manufactured by '{company_name}', "
@@ -407,7 +428,7 @@ else:
         f"**Specific Constraints or Information:**\n{specific_constraints}\n\n"
         f"**Instructions:**\n"
         f"- Generate {2*num_questions // 3} Text-based responses type questions and {num_questions //3} Text + File Upload responses type questions. Divide the Questions in Two Sections 1. Text based Responses 2.Text and file upload responses.\n\n"
-        f"- **Tone of Questions should be Polite and Professional. Questions must start with ***Please or Kindly***.Strictly avoid using ***Can/could*** as starting words of Questions.**\n\n"
+        f"- **Tone of Questions should be Polite and Professional such as Questions must start with ***Please or Kindly***.Must avoid using ***Can/could*** as starting words of Questions.** Follow instructions strictly.\n\n"
     f"**Key Objectives:**\n"
     f"1. Questions that require certificates or supporting documents to explicitly ask for file uploads.\n\n"
     f"2. Investigate product-specific attributes such as health benefits, safety, and unique health propositions, with a focus on potential contamination and chemical residues originating from the specified inputs and treatments.\n\n"
@@ -452,7 +473,142 @@ else:
     f"  **If given product is about Mushrooms then include this as context**: Mushroom quality is compromised by microbial and fungal contamination, physical damage (bruising, cap damage), improper temperature and humidity control, short shelf life leading to nutrient loss and color/texture changes, pest infestations (insects, mites), pesticide residues, allergenic reactions (spores, proteins), toxic wild mushroom contamination, and poor water/substrate quality, necessitating improved cultivation, handling, storage, and regulatory compliance for safe, high-quality products.\n\n"
     f"  **If given product is about Dates then include this as context**: Unethical weight manipulation techniques in the date industry, including sugar syrup dipping, saltwater injection, excessive rehydration, improper drying, and addition of glycerin, polyethylene glycol, sand, stone powder, or starch, increase weight but compromise quality, causing health risks like toxicity, microbial contamination (aflatoxins), nutritional imbalance, and consumer deception.  Stringent quality control, consumer education, clear labeling, and legal enforcement are crucial to ensure safe and high-quality dates.\n\n"
     f"  **If given product is about Wax Coatings in the Date Industry then include this as context**:  The use of wax coatings (natural like beeswax, carnauba; synthetic like polyethylene) on dates enhances appearance and shelf life but poses health risks (chemical residues, digestive issues, toxicity), environmental concerns (non-biodegradable waxes, petroleum use), and regulatory challenges (lack of consistent standards).  Alternatives like edible coatings (aloe vera, starch, pectin) and bio-based polymers (chitosan) are needed to mitigate these negative impacts.\n\n"
-    f"{additional_content}"
+    f"{summaries}"
+    )           
+
+                def generate_docx(questions):
+                   """
+                   Generates a DOCX file with questions and inputs and saves it to disk.
+                   """
+                   doc = Document()
+                   doc.add_heading("Generated Questionnaire", level=1)
+    
+                   doc.add_heading("Generated Questions:", level=2)
+                   for question in questions:
+                      doc.add_paragraph(f"- {question}")
+    
+            
+                   doc_path = "questionnaire_report.docx"
+                   doc.save(doc_path)
+                   return doc_path
+
+                model = genai.GenerativeModel("gemini-2.0-flash-exp")
+                response = model.generate_content(prompt)
+                questions = response.text.strip().split("\n")
+
+                st.subheader("Generated Questions:")
+                for q in questions:
+                    st.write(f"- {q}")
+                
+
+                inputs = {
+    "Company Name": company_name,
+    "Product Brand": product_brand,
+    "Product Description": product_description,
+    "Production Location": production_location,
+    "Geographical Area": geographical_area,
+    "Production Volume": production_volume,
+    "Annual Revenue": annual_revenue,
+    "Additional Constraints": specific_constraints,
+    "Extracted Text": extracted_text,
+}
+
+                save_generated_questions_to_csv(inputs, questions)
+
+                pdf_path = generate_pdf(questions)
+                docx_path = generate_docx(questions)
+              
+                with open(pdf_path, "rb") as pdf_file:
+                     st.download_button(
+                     "Download Full Report as PDF",
+                     pdf_file,
+                     file_name="questionnaire_report.pdf",
+                    )
+                with open(docx_path, "rb") as docx_file:
+                     st.download_button(
+                   "Download Full Report as DOCX",
+                   docx_file,
+                   file_name="questionnaire_report.docx",
+        )
+              
+            except Exception as e:
+                st.error(f"Error generating questions: {e}")
+
+    if st.button("Generate Initial Assessment Questions"):
+        if not company_name or not product_brand or not product_description or not production_location or not geographical_area:
+            st.warning("Please fill out all required fields in the Product Details section.")
+        else:
+            try:
+                if website_urls_input:
+                       urls = [url.strip() for url in website_urls_input.split(",")]
+    
+                       scraped_data = scrape_multiple_websites(urls)
+
+                       st.markdown("<h5>Scraped Data:</h5>", unsafe_allow_html=True)
+                       for idx, (heading, article) in enumerate(scraped_data):
+                          st.markdown(f"##### Website {idx + 1}: {heading}")
+                          st.write(article)
+
+                       combined_article = "\n".join([article for _, article in scraped_data])
+                       st.markdown(f"##### Combined Article from All Websites:")
+                       st.write(combined_article)
+
+                if uploaded_images:
+                  image_paths = []
+                  st.markdown("<h4>Uploaded Images:</h4>", unsafe_allow_html=True)
+                  for idx, uploaded_image in enumerate(uploaded_images, start=1):
+
+                    image = Image.open(uploaded_image)
+                    st.image(image, caption=f"Image {idx}", use_container_width=True)
+        
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as temp_file:
+                       image.save(temp_file.name)
+                       image_paths.append(temp_file.name)
+    
+    
+                  image_context = (
+                    "Images related to the product/company have been uploaded. File paths:\n" +
+                    "\n".join(image_paths)
+                  )
+                
+                Text=""
+                with open("text.txt", "r", encoding="utf-8") as file:
+                    Text = [line.strip().replace('\uf0a7', '-') for line in file]
+    
+                prompt = (
+        f"Generate a comprehensive questionnaire tailored for the product brand '{product_brand}', manufactured by '{company_name}', "
+        f"with a detailed description as '{product_description}', produced in '{production_location}', targeting the '{geographical_area}' geographical area. "
+        f"The production volume is '{production_volume}' and the annual revenue is '{annual_revenue}'. "
+        f"The questionnaire should focus on key areas relevant to health, quality, safety, sustainability, and brand positioning, "
+        f"specifically addressing the unique health benefits and consumer perceptions surrounding the product, with a strong emphasis on potential hazards related to agricultural inputs, post-harvest treatments, seed quality, and ripening processes.\n\n"
+        f"***Context from input files:***\n{extracted_text}\n\n + {combined_article}\n\n +{image_context}\n\n"
+        f"***Highest priority should be given to the context from input files.***\n\n"
+        f"**Specific Constraints or Information:**\n{specific_constraints}\n\n"
+        f"**Instructions:**\n"
+        f"- **Tone of Questions should be Polite and Professional such as Questions must start with ***Please or Kindly***.Must avoid using ***Can/could*** as starting words of Questions.** Follow instructions strictly.\n\n"
+    f"**Key Objectives:**\n"
+    f"1. Questions that require certificates or supporting documents to explicitly ask for file uploads.\n\n"
+    f"2. Investigate product-specific attributes such as health benefits, safety, and unique health propositions, with a focus on potential contamination and chemical residues originating from the specified inputs and treatments.\n\n"
+    f"3. Assess good practices, compliance with regulations, certifications, and ethical practices in business, specifically related to the use of agricultural inputs, post-harvest treatments, seed sourcing, and ripening methods, paying close attention to the potential health and environmental impacts described in the provided text.\n\n"
+    f"4. Understand the current and planned market presence, brand perception, and pricing strategy, considering consumer concerns about food safety and environmental impact, particularly concerning the issues highlighted in the provided text.\n\n"
+    f"5. Inquire about production challenges, competitor analysis, and growth-oriented goals, with an emphasis on mitigating risks related to contamination and chemical residues, drawing on the information provided about specific hazards.\n\n"
+    f"6. Gather detailed insights into sustainable practices, including resource efficiency, waste management, and the reduction of harmful chemical usage, with reference to the specific chemicals and practices mentioned in the text.\n\n"
+    f"7. Capture information regarding the future of company and its commitments to health and sustainability improvements, particularly in relation to minimizing or eliminating the use of harmful substances identified in the provided text.\n\n"
+    f"8. Generate Questions in form such that my client has to answer about his product.\n"
+    f"9. Don't Use symbols of currency. Rather use Name of Currency in response.\n"
+    f"10. Don't use some special symbols(like smart apostrophe) that cannot be encoded using codec.\n"
+    f"11. Use good Introduction and conclusion.\n"
+    f"12. Question should be of top Quality.\n"
+    f"13. Include scientific, geographic, different stages of production process with more emphasis while generating questions.\n"
+    f"14. Questions should be detailed and interesting to answer.\n"
+    f"15. **Put all Questions of similar topic at once under a sub-heading and do not include question topic separately with each questions.**\n"
+    f"16. Generate questions on different processes of making the product.Ex: Different stages of crop production,processing in industries etc.\n"
+    f"17. Also add the topic along with the generated questions( examples like: Health Attribute, production type, sustainability, marketing etc.)\n"
+    f"18. Questions should be in minimum 40 words and very descriptive and explained.\n\n"
+    f"19. Generate questions in such a way that We are assuming that the producers is all clear, but we are going to question them deeply to remove all doubt. Don't start questions with validatory terms.\n"
+     
+    f"**Follow the questionaire Structure given below:**"
+    f"{Text}"
     )           
                 
                 def generate_docx(questions):
@@ -478,20 +634,7 @@ else:
                 st.subheader("Generated Questions:")
                 for q in questions:
                     st.write(f"- {q}")
-
-                inputs = {
-    "Company Name": company_name,
-    "Product Brand": product_brand,
-    "Product Description": product_description,
-    "Production Location": production_location,
-    "Geographical Area": geographical_area,
-    "Production Volume": production_volume,
-    "Annual Revenue": annual_revenue,
-    "Additional Constraints": specific_constraints,
-    "Extracted Text": extracted_text,
-}
-
-                save_generated_questions_to_csv(inputs, questions)
+                
 
                 pdf_path = generate_pdf(questions)
                 docx_path = generate_docx(questions)
