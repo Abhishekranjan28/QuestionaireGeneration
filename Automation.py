@@ -16,7 +16,7 @@ if not GEMINI_API_KEY:
 
 genai.configure(api_key=GEMINI_API_KEY)
 
-DATABASE_URL = os.getenv("RENDER_DB_URL")
+DATABASE_URL = os.getenv("NEON_DB_URL")
 if not DATABASE_URL:
     st.error("PostgreSQL connection string is not set in environment variables.")
     st.stop()
@@ -29,47 +29,70 @@ def connect_db():
         st.error(f"Error connecting to the database: {e}")
         return None
 
-def create_table():
+def create_tables():
     conn = connect_db()
     if conn:
         cursor = conn.cursor()
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS summaries (
-                id SERIAL PRIMARY KEY,
-                summary TEXT NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
+        tables = ["food", "clothes", "cosmetics"]
+        for table in tables:
+            cursor.execute(f'''
+                CREATE TABLE IF NOT EXISTS {table} (
+                    id SERIAL PRIMARY KEY,
+                    summary TEXT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
         conn.commit()
         cursor.close()
         conn.close()
 
-def save_summary_to_db(summary):
+def insert_food(summary):
     conn = connect_db()
     if conn:
         cursor = conn.cursor()
         try:
-            cursor.execute("""
-                INSERT INTO summaries (summary) 
-                VALUES (%s)
-            """, (summary,))
+            cursor.execute("INSERT INTO food (summary) VALUES (%s)", (summary,))
             conn.commit()
-            st.success("Summary saved to the database successfully!")
+            st.success("Food summary saved successfully!")
         except Exception as e:
-            st.error(f"Error saving summary to the database: {e}")
+            st.error(f"Error inserting into food table: {e}")
+        finally:
+            cursor.close()
+            conn.close()
+
+def insert_clothes(summary):
+    conn = connect_db()
+    if conn:
+        cursor = conn.cursor()
+        try:
+            cursor.execute("INSERT INTO clothes (summary) VALUES (%s)", (summary,))
+            conn.commit()
+            st.success("Clothes summary saved successfully!")
+        except Exception as e:
+            st.error(f"Error inserting into clothes table: {e}")
+        finally:
+            cursor.close()
+            conn.close()
+
+def insert_cosmetics(summary):
+    conn = connect_db()
+    if conn:
+        cursor = conn.cursor()
+        try:
+            cursor.execute("INSERT INTO cosmetics (summary) VALUES (%s)", (summary,))
+            conn.commit()
+            st.success("Cosmetics summary saved successfully!")
+        except Exception as e:
+            st.error(f"Error inserting into cosmetics table: {e}")
         finally:
             cursor.close()
             conn.close()
 
 def process_uploaded_file(file):
-    """
-    Reads the content of the uploaded file based on its type.
-    Supports PDF, DOCX, and TXT files.
-    """
     try:
         if file.type == "application/pdf":
             reader = PdfReader(file)
-            text = " ".join(page.extract_text() for page in reader.pages)
+            text = " ".join(page.extract_text() for page in reader.pages if page.extract_text())
         elif file.type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
             doc = Document(file)
             text = " ".join(paragraph.text for paragraph in doc.paragraphs)
@@ -82,9 +105,6 @@ def process_uploaded_file(file):
         return f"Error processing file: {str(e)}"
 
 def summarize_text(content):
-    """
-    Summarizes the given text using the Gemini model.
-    """
     try:
         prompt = (
             f"Summarize the entire text in one line by maintaining all the necessary information given in approx 150 words.\n"
@@ -93,10 +113,9 @@ def summarize_text(content):
         )
         model = genai.GenerativeModel("gemini-1.5-flash")
         response = model.generate_content(prompt)
-
         summary = response.text.strip()
         return summary
     except Exception as e:
         return f"Error generating summary: {str(e)}"
     
-create_table()
+create_tables()
