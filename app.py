@@ -1,4 +1,3 @@
-import bcrypt
 import streamlit as st
 st.set_page_config(page_title="Chatbot-Report Generator", layout="wide")
 from streamlit_cookies_manager import EncryptedCookieManager
@@ -9,13 +8,21 @@ import tempfile
 import fitz 
 from docx import Document 
 import google.generativeai as genai
-import csv
 import requests
 from bs4 import BeautifulSoup
 from PIL import Image
-from Automation import connect_db,create_tables,insert_food,insert_clothes,insert_cosmetics,process_uploaded_file,summarize_text
+import psycopg2
+import hashlib
+import streamlit.components.v1 as components
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+import random
+from Automation import connect_db,insert_food,insert_clothes,insert_cosmetics
 
 load_dotenv()
+
+SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
+SEND_FROM_EMAIL = "abhisshekranjan28@gmail.com"
 
 cookies = EncryptedCookieManager(
     prefix="my_app",
@@ -33,26 +40,19 @@ if not GEMINI_API_KEY:
 
 genai.configure(api_key=GEMINI_API_KEY)
 
-USER_CSV_PATH = "users_data.csv"
-QUESTIONS_CSV_PATH = "generated_questions.csv"
 
-def save_generated_questions_to_csv(inputs, questions):
-    """Save inputs and generated questions to a CSV file."""
-    with open(QUESTIONS_CSV_PATH, mode="a", newline="") as file:
-        writer = csv.writer(file)
-        if file.tell() == 0:
-            writer.writerow([
-                "Company Name", "Product Brand", "Product Description", "Production Location",
-                "Geographical Area", "Production Volume", "Annual Revenue",
-                "Additional Constraints", "Extracted Text", "Generated Questions"
-            ])
-        questions_text = "\n".join(questions)
-        writer.writerow([
-            inputs["Company Name"], inputs["Product Brand"], inputs["Product Description"],
-            inputs["Production Location"], inputs["Geographical Area"], inputs["Production Volume"],
-            inputs["Annual Revenue"], inputs["Additional Constraints"], inputs["Extracted Text"],
-            questions_text
-        ])
+DATABASE_URL = os.getenv("NEON_DB_URL1")
+if not DATABASE_URL:
+    st.error("PostgreSQL connection string is not set in environment variables.")
+    st.stop()
+
+def get_db_connection():
+    try:
+        conn = psycopg2.connect(DATABASE_URL, sslmode="require")
+        return conn
+    except Exception as e:
+        st.error(f"Error connecting to the database: {e}")
+        return None
 
 def scrape_multiple_websites(urls):
     all_headings_and_articles = []
@@ -72,47 +72,6 @@ def scrape_multiple_websites(urls):
             all_headings_and_articles.append(("Error", ""))
     return all_headings_and_articles
 
-
-def load_users():
-    """Load users from CSV file."""
-    if os.path.exists(USER_CSV_PATH):
-        with open(USER_CSV_PATH, mode="r") as file:
-            reader = csv.DictReader(file)
-            return {row["Username"]: row["PasswordHash"] for row in reader}
-    return {}
-
-
-def save_user(username, password_hash):
-    """Save a new user to the CSV file."""
-    with open(USER_CSV_PATH, mode="a", newline="") as file:
-        writer = csv.writer(file)
-        writer.writerow([username, password_hash])
-
-def register_user(username, password):
-    users = load_users()
-    if username in users:
-        st.warning("Username already exists.")
-        return False
-
-    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-    save_user(username, hashed_password.decode('utf-8'))
-    st.success(f"User {username} registered successfully.")
-    return True
-
-def login_user(username, password):
-    users = load_users()
-    if username in users and bcrypt.checkpw(password.encode('utf-8'), users[username].encode('utf-8')):
-        st.session_state.logged_in = True
-        st.session_state.username = username
-
-        cookies["logged_in"] = "true"
-        cookies["username"] = username
-        cookies.save()
-
-        return True
-    else:
-        st.error("Invalid username or password")
-        return False
 
 def save_summary_to_db(table_name,summary):
     if table_name == "food":
@@ -144,57 +103,138 @@ def fetch_summaries(table_name):
             conn.close()
     return "Database connection failed."
 
+def initialize_db():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            email TEXT PRIMARY KEY,
+            password TEXT NOT NULL
+        )
+    ''')
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+initialize_db()  
+
+def generate_otp():
+    return str(random.randint(100000, 999999))
+
+def send_email(otp, recipient_email):
+    message = Mail(
+        from_email=SEND_FROM_EMAIL,
+        to_emails=recipient_email,
+        subject="Your OTP for Email Verification",
+        html_content=f"<p>Your OTP is: <strong>{otp}</strong></p>")
+    
+    try:
+        sg = SendGridAPIClient(SENDGRID_API_KEY)
+        response = sg.send(message)
+        return response.status_code
+    except Exception as e:
+        return str(e)
+
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def register_user(email, password):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    hashed_pw = hash_password(password)
+    cursor.execute("INSERT INTO users (email, password) VALUES (%s, %s) ON CONFLICT (email) DO NOTHING", (email, hashed_pw))
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+def login_user(email, password):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT password FROM users WHERE email=%s", (email,))
+    result = cursor.fetchone()
+    conn.close()
+    return result and result[0] == hash_password(password)
+
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = cookies.get("logged_in") == "true"
-    st.session_state.username = cookies.get("username", "")
+    st.session_state.user_email = cookies.get("user_email")
+
+if "otp" not in st.session_state:
+    st.session_state.otp = None
+if "temp_email" not in st.session_state:
+    st.session_state.temp_email = None
+if "temp_password" not in st.session_state:
+    st.session_state.temp_password = None
 
 if not st.session_state.logged_in:
+
     col_left, _, col_right = st.columns([1, 6, 1]) 
     with col_left:
-        st.image("Altibbe logo dark.png", width=130)
+        st.image("Altibbe logo dark.png", width=150)
+
     with col_right:
         st.image("Hedamo.jpg", width=200)
 
-    st.markdown(
-        """
-        <h1 style='font-size:24px; color:black;'>Login and Register</h1>
-        """, 
-        unsafe_allow_html=True
-    )
+    st.markdown("<h1 style='font-size:24px; color:black;'>Login and Register</h1>", unsafe_allow_html=True)
 
-    auth_mode = st.radio("Choose Authentication Mode", ["Login(If registered)", "Register"])
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
+    auth_mode = st.radio("Choose Authentication Mode", ["Login (If registered)", "Register"])
+    email = st.text_input("Enter your email:")
+    password = st.text_input("Enter your password:", type="password")
 
     if auth_mode == "Register":
-        if st.button("Register"):
-            if username and password:
-                register_user(username, password)
-            else:
-                st.warning("Please provide both username and password.")
-    elif auth_mode == "Login(If registered)":
-       if st.button("Login"):
-         if username and password:
-            if login_user(username, password): 
-                st.success("Logged in successfully!")
-
-                admin_username = "admin" 
-                admin_password = "admin123"
-
-                if username == admin_username and password == admin_password:
-                    st.session_state['allow_admin_download'] = True
+        if st.button("Send OTP"):
+            if email and password:
+                otp = generate_otp()
+                st.session_state.otp = otp
+                st.session_state.temp_email = email
+                st.session_state.temp_password = password
+                status = send_email(otp, email)
+                if status == 202:
+                    st.success(f"OTP sent successfully to {email}! ✅")
                 else:
-                    st.session_state['allow_admin_download'] = False
+                    st.error(f"Failed to send OTP: {status}")
+            else:
+                st.warning("Please enter both email and password.")
 
-                st.rerun() 
+        otp_input = st.text_input("Enter the OTP received:")
+        if st.button("Verify OTP"):
+            if otp_input and st.session_state.otp and otp_input == st.session_state.otp:
+                register_user(st.session_state.temp_email, st.session_state.temp_password)
+                st.success(f"Email {st.session_state.temp_email} verified and registered successfully! ✅")
+                st.session_state.otp = None
+                st.session_state.temp_email = None
+                st.session_state.temp_password = None
+            else:
+                st.error("Invalid OTP. Please try again.")
+
+    elif auth_mode == "Login (If registered)":
+        if st.button("Login"):
+            if email and password:
+                if login_user(email, password): 
+                    st.session_state.logged_in = True
+                    st.session_state.user_email = email
+                    st.success("Logged in successfully! 🎉")
+                    components.html(
+                        f"""
+                        <script>
+                            document.cookie = "logged_in=true; path=/";
+                            document.cookie = "user_email={email}; path=/";
+                        </script>
+                        """,
+                        height=0
+                    )
+                    st.rerun()  
+                else:
+                    st.error("Invalid email or password. Please try again.")
+
 else:
     if st.button("Logout"):
-        cookies["logged_in"] = ""
-        cookies["username"] = ""
+        cookies["logged_in"] = "false"
+        cookies["user_email"] = ""
         cookies.save()
         st.session_state.logged_in = False
-        st.rerun()
-    
+        st.session_state.user_email = None
+        st.rerun()   
 
     col_left, _, col_right = st.columns([1, 6, 1]) 
 
@@ -241,19 +281,15 @@ else:
     """, 
     unsafe_allow_html=True
 )
-    mode = st.selectbox(
-    "Select the mode:",
-    ("Upload files for Training", "Upload files for Questionnaire Generation")
-)
+    
     extracted_text = ""
-    if mode=="Upload files for Questionnaire Generation":
-      uploaded_files = st.file_uploader(
+    uploaded_files = st.file_uploader(
         "Upload files (PDF, text, or Word documents):",
         type=["pdf", "txt", "docx"],
         accept_multiple_files=True,
     )
 
-      if uploaded_files:
+    if uploaded_files:
           for uploaded_file in uploaded_files:
             file_extension = uploaded_file.name.split(".")[-1].lower()
             try:
@@ -270,31 +306,7 @@ else:
                         extracted_text += para.text + "\n"
             except Exception as e:
                 st.error(f"Error processing file '{uploaded_file.name}': {str(e)}")
-    
-    if mode == "Upload files for Training":
-        uploaded_file = st.file_uploader(
-            "Upload files (PDF, text, or Word documents):",
-            type=["pdf", "txt", "docx"],
-            accept_multiple_files=False,
-        )
-        table_name = st.selectbox("Select the table to store the summary:", ["food", "clothes", "cosmetics"])
-
-        if uploaded_file:
-            if st.button("Train"):
-                content = process_uploaded_file(uploaded_file)
-
-                if not content.strip():
-                    st.warning("The uploaded file appears to be empty or unreadable.")
-                else:
-                    st.write("File successfully read. Summarizing the content...")
-                    summary = summarize_text(content)
-                    st.write(summary)
-
-                    if summary:
-                        st.write(summary)
-                        save_summary_to_db(table_name,summary)
-                        st.success("Hurray! File is processed and saved to the database successfully!")
-      
+     
     st.markdown(
     """
     <h1 style='font-size:20px; color:black;'>Additional Information</h1>
@@ -317,19 +329,7 @@ else:
 
     website_urls_input = st.text_area("Enter multiple website URLs (comma separated):(optional)")
 
-    col1, col2 = st.columns(2)
-    production_volume=""
-    annual_revenue=""
-    with col1:
-        company_name = st.text_input("Enter the name of the company:")
-        product_brand = st.text_input("Enter the product brand:")
-        product_description = st.text_input("Enter the product description:")
-        category = st.selectbox("Select the product category:", ["food", "clothes", "cosmetics"])
-    with col2:
-        production_location = st.text_input("Enter the production location:")
-        geographical_area = st.text_input("Enter the geographical market:")
-        production_volume = st.text_input("Enter the production volume:")
-        annual_revenue = st.text_input("Enter the annual revenue:")
+    category = st.selectbox("Select the product category:", ["food", "clothes", "cosmetics"])
 
     st.markdown(
     """
@@ -357,33 +357,29 @@ else:
         max_value=200,
         value=30,
     )
-
+    
     def generate_pdf(questions):
-        pdf = FPDF()
-        pdf.add_page()
+       pdf = FPDF()
+       pdf.add_page()
 
-        pdf.add_font('Roboto', '', 'Roboto-Regular.ttf', uni=True)
-        pdf.add_font('Roboto-Bold', 'B', 'Roboto-Bold.ttf', uni=True)
-        pdf.set_font('Roboto', size=12) 
+       pdf.add_font('Roboto', '', 'Roboto-Regular.ttf', uni=True)
+       pdf.add_font('Roboto-Bold', 'B', 'Roboto-Bold.ttf', uni=True)
+       pdf.set_font('Roboto', size=12)
 
-        pdf.cell(200, 10, txt="Generated Questions", ln=True, align='C')
-        pdf.ln(10)
+       pdf.cell(200, 10, txt="Generated Questions", ln=True, align='C')
+       pdf.ln(10)
 
-        for i, question in enumerate(questions, 1):
-           pdf.multi_cell(0, 10, f"{question}", ln=True)
+       for index, question in enumerate(questions, start=1):  
+          pdf.multi_cell(0, 10, f"{question}")
 
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
-            pdf_output_path = tmp_file.name
-            pdf.output(pdf_output_path)
+       with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
+           pdf_output_path = tmp_file.name
+           pdf.output(pdf_output_path)
 
-        return pdf_output_path
-    
-    
+       return pdf_output_path
 
     if st.button("Generate Deep Questioning Questions"):
-        if not company_name or not product_brand or not product_description or not production_location or not geographical_area:
-            st.warning("Please fill out all required fields in the Product Details section.")
-        else:
+       
             try:
                 if website_urls_input:
                        urls = [url.strip() for url in website_urls_input.split(",")]
@@ -420,9 +416,6 @@ else:
                 summaries = fetch_summaries(category)
     
                 prompt = (
-        f"Generate a comprehensive questionnaire tailored for the product brand '{product_brand}', manufactured by '{company_name}', "
-        f"with a detailed description as '{product_description}', produced in '{production_location}', targeting the '{geographical_area}' geographical area. "
-        f"The production volume is '{production_volume}' and the annual revenue is '{annual_revenue}'. "
         f"The questionnaire should focus on key areas relevant to health, quality, safety, sustainability, and brand positioning, "
         f"specifically addressing the unique health benefits and consumer perceptions surrounding the product, with a strong emphasis on potential hazards related to agricultural inputs, post-harvest treatments, seed quality, and ripening processes.\n\n"
         f"***Context from input files:***\n{extracted_text}\n\n + {combined_article}\n\n +{image_context}\n\n"
@@ -477,7 +470,7 @@ else:
     f"  **If given product is about Wax Coatings in the Date Industry then include this as context**:  The use of wax coatings (natural like beeswax, carnauba; synthetic like polyethylene) on dates enhances appearance and shelf life but poses health risks (chemical residues, digestive issues, toxicity), environmental concerns (non-biodegradable waxes, petroleum use), and regulatory challenges (lack of consistent standards).  Alternatives like edible coatings (aloe vera, starch, pectin) and bio-based polymers (chitosan) are needed to mitigate these negative impacts.\n\n"
     f"{summaries}"
     )           
-
+                st.write(prompt)
                 def generate_docx(questions):
                    """
                    Generates a DOCX file with questions and inputs and saves it to disk.
@@ -502,21 +495,6 @@ else:
                 for q in questions:
                     st.write(f"- {q}")
                 
-
-                inputs = {
-    "Company Name": company_name,
-    "Product Brand": product_brand,
-    "Product Description": product_description,
-    "Production Location": production_location,
-    "Geographical Area": geographical_area,
-    "Production Volume": production_volume,
-    "Annual Revenue": annual_revenue,
-    "Additional Constraints": specific_constraints,
-    "Extracted Text": extracted_text,
-}
-
-                save_generated_questions_to_csv(inputs, questions)
-
                 pdf_path = generate_pdf(questions)
                 docx_path = generate_docx(questions)
               
@@ -537,9 +515,6 @@ else:
                 st.error(f"Error generating questions: {e}")
 
     if st.button("Generate Initial Assessment Questions"):
-        if not company_name or not product_brand or not product_description or not production_location or not geographical_area:
-            st.warning("Please fill out all required fields in the Product Details section.")
-        else:
             try:
                 if website_urls_input:
                        urls = [url.strip() for url in website_urls_input.split(",")]
@@ -578,9 +553,6 @@ else:
                     Text = [line.strip().replace('\uf0a7', '-') for line in file]
     
                 prompt = (
-        f"Generate a comprehensive questionnaire tailored for the product brand '{product_brand}', manufactured by '{company_name}', "
-        f"with a detailed description as '{product_description}', produced in '{production_location}', targeting the '{geographical_area}' geographical area. "
-        f"The production volume is '{production_volume}' and the annual revenue is '{annual_revenue}'. "
         f"The questionnaire should focus on key areas relevant to health, quality, safety, sustainability, and brand positioning, "
         f"specifically addressing the unique health benefits and consumer perceptions surrounding the product, with a strong emphasis on potential hazards related to agricultural inputs, post-harvest treatments, seed quality, and ripening processes.\n\n"
         f"***Context from input files:***\n{extracted_text}\n\n + {combined_article}\n\n +{image_context}\n\n"
@@ -612,7 +584,7 @@ else:
     f"**Follow the questionaire Structure given below:**"
     f"{Text}"
     )           
-                
+                st.write(prompt)
                 def generate_docx(questions):
                    """
                    Generates a DOCX file with questions and inputs and saves it to disk.
