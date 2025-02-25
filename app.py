@@ -470,7 +470,7 @@ else:
     f"  **If given product is about Wax Coatings in the Date Industry then include this as context**:  The use of wax coatings (natural like beeswax, carnauba; synthetic like polyethylene) on dates enhances appearance and shelf life but poses health risks (chemical residues, digestive issues, toxicity), environmental concerns (non-biodegradable waxes, petroleum use), and regulatory challenges (lack of consistent standards).  Alternatives like edible coatings (aloe vera, starch, pectin) and bio-based polymers (chitosan) are needed to mitigate these negative impacts.\n\n"
     f"{summaries}"
     )           
-                st.write(prompt)
+                
                 def generate_docx(questions):
                    """
                    Generates a DOCX file with questions and inputs and saves it to disk.
@@ -584,7 +584,7 @@ else:
     f"**Follow the questionaire Structure given below:**"
     f"{Text}"
     )           
-                st.write(prompt)
+    
                 def generate_docx(questions):
                    """
                    Generates a DOCX file with questions and inputs and saves it to disk.
