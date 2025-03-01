@@ -214,15 +214,9 @@ if not st.session_state.logged_in:
                     st.session_state.logged_in = True
                     st.session_state.user_email = email
                     st.success("Logged in successfully! 🎉")
-                    components.html(
-                        f"""
-                        <script>
-                            document.cookie = "logged_in=true; path=/";
-                            document.cookie = "user_email={email}; path=/";
-                        </script>
-                        """,
-                        height=0
-                    )
+                    cookies["logged_in"] = "true"
+                    cookies["user_email"] = email
+                    cookies.save()
                     st.rerun()  
                 else:
                     st.error("Invalid email or password. Please try again.")
