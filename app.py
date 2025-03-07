@@ -496,13 +496,13 @@ else:
                      st.download_button(
                      "Download Full Report as PDF",
                      pdf_file,
-                     file_name="questionnaire_report.pdf",
+                     file_name="Deep Questionaire.pdf",
                     )
                 with open(docx_path, "rb") as docx_file:
                      st.download_button(
                    "Download Full Report as DOCX",
                    docx_file,
-                   file_name="questionnaire_report.docx",
+                   file_name="Deep Questionaire.docx",
         )
               
             except Exception as e:
@@ -612,13 +612,13 @@ else:
                      st.download_button(
                      "Download Full Report as PDF",
                      pdf_file,
-                     file_name="questionnaire_report.pdf",
+                     file_name="initial Questionaire.pdf",
                     )
                 with open(docx_path, "rb") as docx_file:
                      st.download_button(
                    "Download Full Report as DOCX",
                    docx_file,
-                   file_name="questionnaire_report.docx",
+                   file_name="initial questionaire.docx",
         )
               
             except Exception as e:
