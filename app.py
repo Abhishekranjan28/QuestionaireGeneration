@@ -17,12 +17,17 @@ import streamlit.components.v1 as components
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 import random
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfbase import pdfmetrics
+from reportlab.lib.utils import simpleSplit
 from Automation import connect_db,insert_food,insert_clothes,insert_cosmetics
 
 load_dotenv()
 
 SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
-SEND_FROM_EMAIL = "corp@altibbe.com"
+SEND_FROM_EMAIL = "abhisshekranjan28@gmail.com"
 
 cookies = EncryptedCookieManager(
     prefix="my_app",
@@ -39,7 +44,6 @@ if not GEMINI_API_KEY:
 
 
 genai.configure(api_key=GEMINI_API_KEY)
-
 
 DATABASE_URL = os.getenv("NEON_DB_URL1")
 if not DATABASE_URL:
@@ -214,6 +218,7 @@ if not st.session_state.logged_in:
                     st.session_state.logged_in = True
                     st.session_state.user_email = email
                     st.success("Logged in successfully! 🎉")
+                    
                     cookies["logged_in"] = "true"
                     cookies["user_email"] = email
                     cookies.save()
@@ -325,6 +330,8 @@ else:
 
     category = st.selectbox("Select the product category:", ["food", "clothes", "cosmetics"])
 
+    language= st.selectbox("Select the language",["English","Hindi","Telugu"])
+
     st.markdown(
     """
     <h1 style='font-size:20px; color:black;'>Upload Image</h1>
@@ -351,26 +358,41 @@ else:
         max_value=200,
         value=30,
     )
-    
+
+
     def generate_pdf(questions):
-       pdf = FPDF()
-       pdf.add_page()
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
+            pdf_output_path = tmp_file.name
 
-       pdf.add_font('Roboto', '', 'Roboto-Regular.ttf', uni=True)
-       pdf.add_font('Roboto-Bold', 'B', 'Roboto-Bold.ttf', uni=True)
-       pdf.set_font('Roboto', size=12)
+        c = canvas.Canvas(pdf_output_path, pagesize=A4)
+        width, height = A4
 
-       pdf.cell(200, 10, txt="Generated Questions", ln=True, align='C')
-       pdf.ln(10)
+        pdfmetrics.registerFont(TTFont('NotoSans', 'NotoSans-Regular.ttf'))
 
-       for index, question in enumerate(questions, start=1):  
-          pdf.multi_cell(0, 10, f"{question}",ln=True)
+        c.setFont("NotoSans", 12)
 
-       with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
-           pdf_output_path = tmp_file.name
-           pdf.output(pdf_output_path)
+        c.drawString(200, height - 50, "Generated Questions")
+    
+        y = height - 80 
+        line_height = 20  
+        max_y = 50  
 
-       return pdf_output_path
+        for i, question in enumerate(questions, 1):
+    
+            wrapped_text = simpleSplit(f"{question}", "NotoSans", 12, width - 100)
+
+            for line in wrapped_text:
+                if y < max_y:  
+                   c.showPage() 
+                   c.setFont("NotoSans", 12)  
+                   y = height - 50  
+
+                c.drawString(50, y, line) 
+                y -= line_height  
+
+        c.save()
+        return pdf_output_path
+
 
     if st.button("Generate Deep Questioning Questions"):
        
@@ -415,6 +437,7 @@ else:
         f"***Context from input files:***\n{extracted_text}\n\n + {combined_article}\n\n +{image_context}\n\n"
         f"***Highest priority should be given to the context from input files.***\n\n"
         f"**Specific Constraints or Information:**\n{specific_constraints}\n\n"
+        f"**The langauge of reponse must be {language} strictly.**"
         f"**Instructions:**\n"
         f"- Generate {2*num_questions // 3} Text-based responses type questions and {num_questions //3} Text + File Upload responses type questions. Divide the Questions in Two Sections 1. Text based Responses 2.Text and file upload responses.\n\n"
         f"- **Tone of Questions should be Polite and Professional such as Questions must start with ***Please or Kindly***.Must avoid using ***Can/could*** as starting words of Questions.** Follow instructions strictly.\n\n"
@@ -494,15 +517,15 @@ else:
               
                 with open(pdf_path, "rb") as pdf_file:
                      st.download_button(
-                     "Download Full Report as PDF",
+                     "Download Full Report as PDF(If English and Hindi)",
                      pdf_file,
-                     file_name="Deep Questionaire.pdf",
+                     file_name="questionnaire_report.pdf",
                     )
                 with open(docx_path, "rb") as docx_file:
                      st.download_button(
-                   "Download Full Report as DOCX",
+                   "Download Full Report as DOCX(All Language Supported)",
                    docx_file,
-                   file_name="Deep Questionaire.docx",
+                   file_name="questionnaire_report.docx",
         )
               
             except Exception as e:
@@ -554,6 +577,7 @@ else:
         f"**Specific Constraints or Information:**\n{specific_constraints}\n\n"
         f"**Instructions:**\n"
         f"-***Generate {num_questions} Questions***\n\n"
+         f"**The language of response must be {language} strictly.**"
         f"- **Tone of Questions should be Polite and Professional such as Questions must start with ***Please or Kindly***.Must avoid using ***Can/could*** as starting words of Questions.** Follow instructions strictly.\n\n"
     f"**Key Objectives:**\n"
     f"1. Questions that require certificates or supporting documents to explicitly ask for file uploads.\n\n"
@@ -579,7 +603,7 @@ else:
     f"**Follow the questionaire Structure given below:**"
     f"{Text}"
     )           
-    
+                
                 def generate_docx(questions):
                    """
                    Generates a DOCX file with questions and inputs and saves it to disk.
@@ -610,15 +634,15 @@ else:
               
                 with open(pdf_path, "rb") as pdf_file:
                      st.download_button(
-                     "Download Full Report as PDF",
+                     "Download Full Report as PDF(Only Hindi and English)",
                      pdf_file,
-                     file_name="initial Questionaire.pdf",
+                     file_name="questionnaire_report.pdf",
                     )
                 with open(docx_path, "rb") as docx_file:
                      st.download_button(
-                   "Download Full Report as DOCX",
+                   "Download Full Report as DOCX(All Language Supported)",
                    docx_file,
-                   file_name="initial questionaire.docx",
+                   file_name="questionnaire_report.docx",
         )
               
             except Exception as e:
