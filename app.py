@@ -27,7 +27,7 @@ from Automation import connect_db,insert_food,insert_clothes,insert_cosmetics
 load_dotenv()
 
 SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
-SEND_FROM_EMAIL = "abhisshekranjan28@gmail.com"
+SEND_FROM_EMAIL = "corp@altibbe.com"
 
 cookies = EncryptedCookieManager(
     prefix="my_app",
