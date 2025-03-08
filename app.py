@@ -519,13 +519,13 @@ else:
                      st.download_button(
                      "Download Full Report as PDF(If English and Hindi)",
                      pdf_file,
-                     file_name="questionnaire_report.pdf",
+                     file_name="Deep Questioning.pdf",
                     )
                 with open(docx_path, "rb") as docx_file:
                      st.download_button(
                    "Download Full Report as DOCX(All Language Supported)",
                    docx_file,
-                   file_name="questionnaire_report.docx",
+                   file_name="Deep Questioning.docx",
         )
               
             except Exception as e:
@@ -636,13 +636,13 @@ else:
                      st.download_button(
                      "Download Full Report as PDF(Only Hindi and English)",
                      pdf_file,
-                     file_name="questionnaire_report.pdf",
+                     file_name="initial questioning.pdf",
                     )
                 with open(docx_path, "rb") as docx_file:
                      st.download_button(
                    "Download Full Report as DOCX(All Language Supported)",
                    docx_file,
-                   file_name="questionnaire_report.docx",
+                   file_name="initial questioning.docx",
         )
               
             except Exception as e:
