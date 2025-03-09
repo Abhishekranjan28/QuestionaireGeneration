@@ -330,7 +330,7 @@ else:
 
     category = st.selectbox("Select the product category:", ["food", "clothes", "cosmetics"])
 
-    language= st.selectbox("Select the language",["English","Hindi","Telugu"])
+    language= st.selectbox("Select the language",["English","Hindi","Telugu","Arabic","Italian","Portuguese","Tamil","Kannada","Malyalam"])
 
     st.markdown(
     """
