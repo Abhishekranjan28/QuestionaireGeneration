@@ -485,7 +485,8 @@ else:
     f"  **If given product is about Mushrooms then include this as context**: Mushroom quality is compromised by microbial and fungal contamination, physical damage (bruising, cap damage), improper temperature and humidity control, short shelf life leading to nutrient loss and color/texture changes, pest infestations (insects, mites), pesticide residues, allergenic reactions (spores, proteins), toxic wild mushroom contamination, and poor water/substrate quality, necessitating improved cultivation, handling, storage, and regulatory compliance for safe, high-quality products.\n\n"
     f"  **If given product is about Dates then include this as context**: Unethical weight manipulation techniques in the date industry, including sugar syrup dipping, saltwater injection, excessive rehydration, improper drying, and addition of glycerin, polyethylene glycol, sand, stone powder, or starch, increase weight but compromise quality, causing health risks like toxicity, microbial contamination (aflatoxins), nutritional imbalance, and consumer deception.  Stringent quality control, consumer education, clear labeling, and legal enforcement are crucial to ensure safe and high-quality dates.\n\n"
     f"  **If given product is about Wax Coatings in the Date Industry then include this as context**:  The use of wax coatings (natural like beeswax, carnauba; synthetic like polyethylene) on dates enhances appearance and shelf life but poses health risks (chemical residues, digestive issues, toxicity), environmental concerns (non-biodegradable waxes, petroleum use), and regulatory challenges (lack of consistent standards).  Alternatives like edible coatings (aloe vera, starch, pectin) and bio-based polymers (chitosan) are needed to mitigate these negative impacts.\n\n"
-    f"{summaries}"
+    f"{summaries}\n\n"
+    f"***Generate Questions by Completely Understanding its relevancy with respect to product. For Example: We cannot generate Ripening Questions for Puffed Rice.***"
     )           
                 
                 def generate_docx(questions):
@@ -504,7 +505,7 @@ else:
                    doc.save(doc_path)
                    return doc_path
 
-                model = genai.GenerativeModel("gemini-2.0-flash-exp")
+                model = genai.GenerativeModel("gemini-2.0-flash-thinking-exp")
                 response = model.generate_content(prompt)
                 questions = response.text.strip().split("\n")
 
@@ -600,8 +601,9 @@ else:
     f"18. Questions should be in minimum 40 words and very descriptive and explained.\n\n"
     f"19. Generate questions in such a way that We are assuming that the producers is all clear, but we are going to question them deeply to remove all doubt. Don't start questions with validatory terms.\n"
      
-    f"**Follow the questionaire Structure given below:**"
-    f"{Text}"
+    f"**Follow the questionaire Structure given below:**\n"
+    f"{Text}\n\n"
+    f"***Generate Questions by Completely Understanding its relevancy with respect to product. For Example: We cannot generate Ripening Questions for Puffed Rice.***"
     )           
                 
                 def generate_docx(questions):
@@ -620,7 +622,7 @@ else:
                    doc.save(doc_path)
                    return doc_path
 
-                model = genai.GenerativeModel("gemini-2.0-flash-exp")
+                model = genai.GenerativeModel("gemini-2.0-flash-thinking-exp")
                 response = model.generate_content(prompt)
                 questions = response.text.strip().split("\n")
 
