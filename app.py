@@ -568,7 +568,7 @@ else:
                 prompt = (
          f"**Follow the questionaire Structure given below:\n\n**"
          f"{Text}\n\n"
-        f"***Context from input files:***\n{extracted_text}\n\n + {website_content}\n\n"
+        f"***Context from input files:***\n{extracted_text}\n\n + {combined_article}\n\n"
         f"***Highest priority should be given to the context from input files.***\n\n"
         f"**Specific Constraints or Information:**\n{specific_constraints}\n\n"
         f"**Instructions:**\n"
