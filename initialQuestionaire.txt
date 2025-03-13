@@ -1,0 +1,24 @@
+Objective: Preliminary screening & eligibility check for organic certification.
+Key Aspects Evaluated:
+•	Novelty of the Product 
+o	Unique aspects compared to existing organic products
+o	Compliance with organic innovation standards
+•	Raw Material & Sourcing Overview 
+o	Basic details on raw material origins
+o	Whether ingredients/materials are already certified organic
+•	Farming & Cultivation Practices (Agriculture & Livestock) 
+o	Initial verification of organic practices
+o	Use of pesticides, synthetic fertilizers, or prohibited inputs
+•	Manufacturing & Processing Overview 
+o	Compliance with organic processing requirements
+•	Packaging & Labeling Review 
+o	Initial assessment of organic claims and sustainability aspects
+•	Preliminary Document Submission 
+o	Business registration
+o	Supplier organic certifications (if available)
+
+
+Learn from the Given text and Generate questions from areas which appears to be incomplete.\n
+Questions present in prompt strictly not be duplicated or there should be no repeated question generation.\n
+Questions must be asked from the given text.\n
+Keep in mind that our main objective is to get rid of any doubt from our client.\n

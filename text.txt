@@ -1,4 +1,0 @@
-Learn from the Given text and Generate questions from areas which appears to be incomplete.\n
-Questions present in prompt strictly not be duplicated or there should be no repeated question generation.\n
-Questions must be asked from the given text.\n
-Keep in mind that our main objective is to get rid of any doubt from our client.\n
