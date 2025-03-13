@@ -430,11 +430,13 @@ else:
                   )
                 
                 summaries = fetch_summaries(category)
-    
+                Text=""
+                with open("finalQuestionaire.txt", "r", encoding="utf-8") as file:
+                    Text = [line.strip().replace('\uf0a7', '-') for line in file]
+
                 prompt = (
-        f"The questionnaire should focus on key areas relevant to health, quality, safety, sustainability, and brand positioning, "
-        f"specifically addressing the unique health benefits and consumer perceptions surrounding the product, with a strong emphasis on potential hazards related to agricultural inputs, post-harvest treatments, seed quality, and ripening processes.\n\n"
-        f"***Context from input files:***\n{extracted_text}\n\n + {combined_article}\n\n +{image_context}\n\n"
+        f"Follow These Instructions strictly:\n\n"
+        f"{Text}\n\n"
         f"***Highest priority should be given to the context from input files.***\n\n"
         f"**Specific Constraints or Information:**\n{specific_constraints}\n\n"
         f"**The langauge of reponse must be {language} strictly.**"
@@ -442,26 +444,20 @@ else:
         f"- Generate {2*num_questions // 3} Text-based responses type questions and {num_questions //3} Text + File Upload responses type questions. Divide the Questions in Two Sections 1. Text based Responses 2.Text and file upload responses.\n\n"
         f"- **Tone of Questions should be Polite and Professional such as Questions must start with ***Please or Kindly***.Must avoid using ***Can/could*** as starting words of Questions.** Follow instructions strictly.\n\n"
     f"**Key Objectives:**\n"
-    f"1. Questions that require certificates or supporting documents to explicitly ask for file uploads.\n\n"
-    f"2. Investigate product-specific attributes such as health benefits, safety, and unique health propositions, with a focus on potential contamination and chemical residues originating from the specified inputs and treatments.\n\n"
-    f"3. Assess good practices, compliance with regulations, certifications, and ethical practices in business, specifically related to the use of agricultural inputs, post-harvest treatments, seed sourcing, and ripening methods, paying close attention to the potential health and environmental impacts described in the provided text.\n\n"
-    f"4. Understand the current and planned market presence, brand perception, and pricing strategy, considering consumer concerns about food safety and environmental impact, particularly concerning the issues highlighted in the provided text.\n\n"
-    f"5. Inquire about production challenges, competitor analysis, and growth-oriented goals, with an emphasis on mitigating risks related to contamination and chemical residues, drawing on the information provided about specific hazards.\n\n"
-    f"6. Gather detailed insights into sustainable practices, including resource efficiency, waste management, and the reduction of harmful chemical usage, with reference to the specific chemicals and practices mentioned in the text.\n\n"
-    f"7. Capture information regarding the future of company and its commitments to health and sustainability improvements, particularly in relation to minimizing or eliminating the use of harmful substances identified in the provided text.\n\n"
-    f"8. Generate Questions in form such that my client has to answer about his product.\n"
-    f"9. Don't Use symbols of currency. Rather use Name of Currency in response.\n"
-    f"10. Don't use some special symbols(like smart apostrophe) that cannot be encoded using codec.\n"
-    f"11. Use good Introduction and conclusion.\n"
-    f"12. Question should be of top Quality.\n"
-    f"13. Include scientific, geographic, different stages of production process with more emphasis while generating questions.\n"
-    f"14. Questions should be detailed and interesting to answer.\n"
-    f"15. **Put all Questions of similar topic at once under a sub-heading and do not include question topic separately with each questions.**\n"
-    f"16. Generate questions on different processes of making the product.Ex: Different stages of crop production,processing in industries etc.\n"
-    f"17. Also add the topic along with the generated questions( examples like: Health Attribute, production type, sustainability, marketing etc.)\n"
-    f"18. Questions should be in minimum 40 words and very descriptive and explained.\n\n"
-    f"19. Generate questions in such a way that We are assuming that the producers is all clear, but we are going to question them deeply to remove all doubt. Don't start questions with validatory terms.\n"
-    f"20. Be very strict to given instructions.Generate exact number of questions given in instructions.\n"
+    
+    f"1. Generate Questions in form such that my client has to answer about his product.\n"
+    f"2. Don't Use symbols of currency. Rather use Name of Currency in response.\n"
+    f"3. Don't use some special symbols(like smart apostrophe) that cannot be encoded using codec.\n"
+    f"4. Use good Introduction and conclusion.\n"
+    f"5. Question should be of top Quality.\n"
+    f"6. Include scientific, geographic, different stages of production process with more emphasis while generating questions.\n"
+    f"7. Questions should be detailed and interesting to answer.\n"
+    f"8. **Put all Questions of similar topic at once under a sub-heading and do not include question topic separately with each questions.**\n"
+    f"9. Generate questions on different processes of making the product.Ex: Different stages of crop production,processing in industries etc.\n"
+    f"10. Also add the topic along with the generated questions( examples like: Health Attribute, production type, sustainability, marketing etc.)\n"
+    f"11. Questions should be in minimum 40 words and very descriptive and explained.\n\n"
+    f"12. Generate questions in such a way that We are assuming that the producers is all clear, but we are going to question them deeply to remove all doubt. Don't start questions with validatory terms.\n"
+    f"13. Be very strict to given instructions.Generate exact number of questions given in instructions.\n"
     f"- Ensure questions are focused on product quality, compliance, good practices, brand positioning, and sustainability, with a strong emphasis on the following areas, drawing specific details from the provided text:\n"
     f"  **Harmful agricultural inputs:** (Pesticides: Organophosphates, Carbamates, Synthetic Pyrethroids, Organochlorines, Neonicotinoids; Herbicides: Glyphosate; Fungicides: Mancozeb; Fertilizers: Synthetic Nitrogen, Phosphorus, Potassium; PGRs: Synthetic Hormones, Non-compliant Auxins/Cytokinins; Soil Conditioners: Heavy Metals, Sewage Sludge; Animal Feed Additives: Antibiotics, Hormonal Additives; Contaminated Irrigation Water: Industrial Chemicals, Pesticide Runoff)\n"
     f"  **Post-harvest treatments:** (Synthetic Preservatives: Sulfur Dioxide, Benzoates, Sorbates; Wax Coatings: Natural/Synthetic; Synthetic Fumigants: Methyl Bromide, Phosphine Gas; Chemical Treatments for Disease Prevention: Imazalil, Thiabendazole, Chlorine Washes; Cold Storage/MAP: Chemical Leaching, Nutrient Loss; Irradiation: Radiolytic Products, Nutrient Loss; Hazardous Packaging: Plasticizers, BPA)\n"
@@ -485,9 +481,8 @@ else:
     f"  **If given product is about Mushrooms then include this as context**: Mushroom quality is compromised by microbial and fungal contamination, physical damage (bruising, cap damage), improper temperature and humidity control, short shelf life leading to nutrient loss and color/texture changes, pest infestations (insects, mites), pesticide residues, allergenic reactions (spores, proteins), toxic wild mushroom contamination, and poor water/substrate quality, necessitating improved cultivation, handling, storage, and regulatory compliance for safe, high-quality products.\n\n"
     f"  **If given product is about Dates then include this as context**: Unethical weight manipulation techniques in the date industry, including sugar syrup dipping, saltwater injection, excessive rehydration, improper drying, and addition of glycerin, polyethylene glycol, sand, stone powder, or starch, increase weight but compromise quality, causing health risks like toxicity, microbial contamination (aflatoxins), nutritional imbalance, and consumer deception.  Stringent quality control, consumer education, clear labeling, and legal enforcement are crucial to ensure safe and high-quality dates.\n\n"
     f"  **If given product is about Wax Coatings in the Date Industry then include this as context**:  The use of wax coatings (natural like beeswax, carnauba; synthetic like polyethylene) on dates enhances appearance and shelf life but poses health risks (chemical residues, digestive issues, toxicity), environmental concerns (non-biodegradable waxes, petroleum use), and regulatory challenges (lack of consistent standards).  Alternatives like edible coatings (aloe vera, starch, pectin) and bio-based polymers (chitosan) are needed to mitigate these negative impacts.\n\n"
-    f"{summaries}\n\n"
-    f"***Generate Questions by Completely Understanding its relevancy with respect to product. For Example: We cannot generate Ripening Questions for Puffed Rice.***"
-    )           
+    f"{summaries}"
+    )          
                 
                 def generate_docx(questions):
                    """
@@ -567,43 +562,32 @@ else:
                   )
                 
                 Text=""
-                with open("text.txt", "r", encoding="utf-8") as file:
+                with open("initialQuestionaire.txt", "r", encoding="utf-8") as file:
                     Text = [line.strip().replace('\uf0a7', '-') for line in file]
     
                 prompt = (
-        f"The questionnaire should focus on key areas relevant to health, quality, safety, sustainability, and brand positioning, "
-        f"specifically addressing the unique health benefits and consumer perceptions surrounding the product, with a strong emphasis on potential hazards related to agricultural inputs, post-harvest treatments, seed quality, and ripening processes.\n\n"
-        f"***Context from input files:***\n{extracted_text}\n\n + {combined_article}\n\n +{image_context}\n\n"
+         f"**Follow the questionaire Structure given below:\n\n**"
+         f"{Text}\n\n"
+        f"***Context from input files:***\n{extracted_text}\n\n + {website_content}\n\n"
         f"***Highest priority should be given to the context from input files.***\n\n"
         f"**Specific Constraints or Information:**\n{specific_constraints}\n\n"
         f"**Instructions:**\n"
         f"-***Generate {num_questions} Questions***\n\n"
          f"**The language of response must be {language} strictly.**"
         f"- **Tone of Questions should be Polite and Professional such as Questions must start with ***Please or Kindly***.Must avoid using ***Can/could*** as starting words of Questions.** Follow instructions strictly.\n\n"
-    f"**Key Objectives:**\n"
-    f"1. Questions that require certificates or supporting documents to explicitly ask for file uploads.\n\n"
-    f"2. Investigate product-specific attributes such as health benefits, safety, and unique health propositions, with a focus on potential contamination and chemical residues originating from the specified inputs and treatments.\n\n"
-    f"3. Assess good practices, compliance with regulations, certifications, and ethical practices in business, specifically related to the use of agricultural inputs, post-harvest treatments, seed sourcing, and ripening methods, paying close attention to the potential health and environmental impacts described in the provided text.\n\n"
-    f"4. Understand the current and planned market presence, brand perception, and pricing strategy, considering consumer concerns about food safety and environmental impact, particularly concerning the issues highlighted in the provided text.\n\n"
-    f"5. Inquire about production challenges, competitor analysis, and growth-oriented goals, with an emphasis on mitigating risks related to contamination and chemical residues, drawing on the information provided about specific hazards.\n\n"
-    f"6. Gather detailed insights into sustainable practices, including resource efficiency, waste management, and the reduction of harmful chemical usage, with reference to the specific chemicals and practices mentioned in the text.\n\n"
-    f"7. Capture information regarding the future of company and its commitments to health and sustainability improvements, particularly in relation to minimizing or eliminating the use of harmful substances identified in the provided text.\n\n"
-    f"8. Generate Questions in form such that my client has to answer about his product.\n"
-    f"9. Don't Use symbols of currency. Rather use Name of Currency in response.\n"
-    f"10. Don't use some special symbols(like smart apostrophe) that cannot be encoded using codec.\n"
-    f"11. Use good Introduction and conclusion.\n"
-    f"12. Question should be of top Quality.\n"
-    f"13. Include scientific, geographic, different stages of production process with more emphasis while generating questions.\n"
-    f"14. Questions should be detailed and interesting to answer.\n"
-    f"15. **Put all Questions of similar topic at once under a sub-heading and do not include question topic separately with each questions.**\n"
-    f"16. Generate questions on different processes of making the product.Ex: Different stages of crop production,processing in industries etc.\n"
-    f"17. Also add the topic along with the generated questions( examples like: Health Attribute, production type, sustainability, marketing etc.)\n"
-    f"18. Questions should be in minimum 40 words and very descriptive and explained.\n\n"
-    f"19. Generate questions in such a way that We are assuming that the producers is all clear, but we are going to question them deeply to remove all doubt. Don't start questions with validatory terms.\n"
-     
-    f"**Follow the questionaire Structure given below:**\n"
-    f"{Text}\n\n"
-    f"***Generate Questions by Completely Understanding its relevancy with respect to product. For Example: We cannot generate Ripening Questions for Puffed Rice.***"
+    f"**Some Strict instructions:**\n"
+    f"1. Generate Questions in form such that my client has to answer about his product.\n"
+    f"2. Don't Use symbols of currency. Rather use Name of Currency in response.\n"
+    f"3. Don't use some special symbols(like smart apostrophe) that cannot be encoded using codec.\n"
+    f"4. Use good Introduction and conclusion.\n"
+    f"5. Question should be of top Quality.\n"
+    f"6. Include scientific, geographic, different stages of production process with more emphasis while generating questions.\n"
+    f"7. Questions should be detailed and interesting to answer.\n"
+    f"8. **Put all Questions of similar topic at once under a sub-heading and do not include question topic separately with each questions.**\n"
+    f"9. Generate questions on different processes of making the product.Ex: Different stages of crop production,processing in industries etc.\n"
+    f"10. Also add the topic along with the generated questions( examples like: Health Attribute, production type, sustainability, marketing etc.)\n"
+    f"11. Questions should be in minimum 40 words and very descriptive and explained.\n\n"
+    f"12. Generate questions in such a way that We are assuming that the producers is all clear, but we are going to question them deeply to remove all doubt. Don't start questions with validatory terms.\n" 
     )           
                 
                 def generate_docx(questions):
