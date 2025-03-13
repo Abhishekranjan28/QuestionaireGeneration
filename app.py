@@ -437,6 +437,7 @@ else:
                 prompt = (
         f"Follow These Instructions strictly:\n\n"
         f"{Text}\n\n"
+        f"***Context from input files:***\n{extracted_text}\n\n + {combined_article}\n\n +{image_context}\n\n"
         f"***Highest priority should be given to the context from input files.***\n\n"
         f"**Specific Constraints or Information:**\n{specific_constraints}\n\n"
         f"**The langauge of reponse must be {language} strictly.**"
@@ -444,7 +445,6 @@ else:
         f"- Generate {2*num_questions // 3} Text-based responses type questions and {num_questions //3} Text + File Upload responses type questions. Divide the Questions in Two Sections 1. Text based Responses 2.Text and file upload responses.\n\n"
         f"- **Tone of Questions should be Polite and Professional such as Questions must start with ***Please or Kindly***.Must avoid using ***Can/could*** as starting words of Questions.** Follow instructions strictly.\n\n"
     f"**Key Objectives:**\n"
-    
     f"1. Generate Questions in form such that my client has to answer about his product.\n"
     f"2. Don't Use symbols of currency. Rather use Name of Currency in response.\n"
     f"3. Don't use some special symbols(like smart apostrophe) that cannot be encoded using codec.\n"
