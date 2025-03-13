@@ -500,7 +500,7 @@ else:
                    doc.save(doc_path)
                    return doc_path
 
-                model = genai.GenerativeModel("gemini-2.0-flash-thinking-exp")
+                model = genai.GenerativeModel("gemini-2.0-flash")
                 response = model.generate_content(prompt)
                 questions = response.text.strip().split("\n")
 
@@ -606,7 +606,7 @@ else:
                    doc.save(doc_path)
                    return doc_path
 
-                model = genai.GenerativeModel("gemini-2.0-flash-thinking-exp")
+                model = genai.GenerativeModel("gemini-2.0-flash")
                 response = model.generate_content(prompt)
                 questions = response.text.strip().split("\n")
 
