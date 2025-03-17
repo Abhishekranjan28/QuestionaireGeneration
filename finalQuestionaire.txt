@@ -112,36 +112,3 @@ Policy and Support:
       Need for policy framework: Importance of a robust, steady, holistic policy framework.
       Access to finance: Importance of providing access to finance to support regenerative agriculture. 
       Government support: The government should develop and run a public awareness campaign and support farmers by ensuring long-term funding. 
-
-
-Output format Must be int given format.
-
-[
-                {
-                q: "What is the name of the product?",
-                    t: "text"
-                },
-                {
-                    q: "Provide a detailed description of the product.",
-                    t: "paragraph"
-                },
-                {
-                    q: "What category does this product belong to?",
-                    t: "multiple_choice",
-                    c: ["Electronics", "Clothing", "Food", "Furniture", "Other"]
-                },
-                {
-                    q: "What is the manufacturing date of the product?",
-                    t: "text"
-                },
-                {
-                    q: "Is the product eco-friendly?",
-                    t: "multiple_choice",
-                    c: ["Yes", "No", "Partially"]
-                },
-                {
-                    q: "Is the product eco-friendly?",
-                    t: "files",
-                    c: ["file.png", "file2.pdf", "file3.jpeg"]
-                }
-];
