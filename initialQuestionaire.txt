@@ -7,8 +7,8 @@ o	Compliance with organic innovation standards
 o	Basic details on raw material origins
 o	Whether ingredients/materials are already certified organic
 •	Farming & Cultivation Practices (Agriculture & Livestock) 
-o	Initial verification of organic practices
-o	Use of pesticides, synthetic fertilizers, or prohibited inputs
+o	Initial verification of organic practices(Agriculture & Livestock)
+o	Use of pesticides, synthetic fertilizers, or prohibited inputs(Agriculture and Livestock)
 •	Manufacturing & Processing Overview
 o	Compliance with organic processing requirements
 •	Packaging & Labeling Review 
@@ -24,9 +24,9 @@ o	Supplier verification (certifications, traceability)
 o	Risk of contamination with non-organic materials
 o	Use of GMOs (prohibited)
 •	Farming & Cultivation Practices (Agriculture & Livestock) 
-o	Organic soil fertility & pest management
-o	Biodiversity, crop rotation, and conservation practices
-o	Ethical animal husbandry & organic feed compliance
+o	Organic soil fertility & pest management(Agricultural & Livestock)
+o	Biodiversity, crop rotation, and conservation practices(Agriculture & Livestock)
+o	Ethical animal husbandry & organic feed compliance(Agriculture & Livestock)
 •	Manufacturing & Processing Compliance 
 o	Use of cleaning agents, processing aids, and additives
 o	Prevention of cross-contamination
@@ -44,25 +44,9 @@ o	Fair wages, safe working conditions, and ethical sourcing policies
 o	Water & energy usage efficiency
 o	Waste management and carbon footprint assessment
 
-Objective: Verification of compliance and sustainability through a detailed audit process.
-Key Aspects Evaluated:
-•	Final Product Compliance Validation 
-o	Ensuring adherence to organic standards
-o	Reviewing traceability from sourcing to finished product
-•	Final Labeling & Packaging Review 
-o	Confirming compliance with organic labeling regulations
-o	Avoiding misleading claims or false advertising
-•	Worker Welfare & Ethical Practices (Final Validation) 
-o	Documented fair trade policies and labor rights compliance
-•	Certification Documentation Audit 
-o	Compliance reports, test results, corrective actions review
-
-
-Learn from the Given text and Generate questions from areas which appears to be incomplete.\n
+Learn from the Given text and Generate questions Which seems Specific to the given Product.\n
 Questions present in prompt strictly not be duplicated or there should be no repeated question generation.\n
 Questions must be asked from the given text.\n
-Keep in mind that our main objective is to get rid of any doubt from our client.\n
-
 
 Objective: Incorporating Regenerative Farming.
 
