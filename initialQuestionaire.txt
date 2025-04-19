@@ -1,48 +1,24 @@
 You have to Generate Questionaire using all these points
-Key Aspects Evaluated:
-•	Novelty of the Product 
-o	Unique aspects compared to existing organic products
-o	Compliance with organic innovation standards
-•	Raw Material & Sourcing Overview 
-o	Basic details on raw material origins
-o	Whether ingredients/materials are already certified organic
-•	Farming & Cultivation Practices (Agriculture & Livestock) 
-o	Initial verification of organic practices(Agriculture & Livestock)
-o	Use of pesticides, synthetic fertilizers, or prohibited inputs(Agriculture and Livestock)
-•	Manufacturing & Processing Overview
-o	Compliance with organic processing requirements
-•	Packaging & Labeling Review 
-o	Initial assessment of organic claims and sustainability aspects
-•	Preliminary Document Submission 
-o	Business registration
-o	Supplier organic certifications (if available)
- Manufacturing and Proccessing Questions.
-
-Key Aspects Evaluated:
-•	Raw Material Sourcing & Traceability 
-o	Supplier verification (certifications, traceability)
-o	Risk of contamination with non-organic materials
-o	Use of GMOs (prohibited)
-•	Farming & Cultivation Practices (Agriculture & Livestock) 
-o	Organic soil fertility & pest management(Agricultural & Livestock)
-o	Biodiversity, crop rotation, and conservation practices(Agriculture & Livestock)
-o	Ethical animal husbandry & organic feed compliance(Agriculture & Livestock)
-•	Manufacturing & Processing Compliance 
-o	Use of cleaning agents, processing aids, and additives
-o	Prevention of cross-contamination
-o	Organic storage & handling compliance
-•	Chemical & Additive Compliance 
-o	Prohibited vs. permitted substances (cosmetics, textiles, food)
-•	Packaging & Labeling Compliance 
-o	Use of eco-friendly, non-toxic, biodegradable materials
-o	Accuracy of organic claims and certification labels
-•	Supply Chain & Traceability 
-o	Record-keeping & segregation of organic vs. non-organic materials
-•	Worker Welfare & Ethical Practices 
-o	Fair wages, safe working conditions, and ethical sourcing policies
-•	Sustainability & Environmental Impact 
-o	Water & energy usage efficiency
-o	Waste management and carbon footprint assessment
+Objective:
+Detailed review of organic practices, documentation, and compliance status.
+Aspects to be Evaluated:
+•	Complete supplier and traceability documentation (Supplier certification copies, purchase invoices, lot numbers, traceability system flow)
+•	GMOs and contamination risk analysis (Risk assessment documents, GMO-free declarations, buffer zones, segregation methods)
+•	In-depth farming or livestock management practices (Crop rotation, manure use, animal welfare, grazing access, prohibited inputs management)
+•	Soil, pest, biodiversity, animal welfare checks (Soil health records, biological pest control measures, conservation practices, animal housing conditions)
+•	Harvesting practices and post-harvest handling (Harvest tools, containers, cleanliness, drying, cleaning, sorting, storage methods)
+•	Review of manufacturing practices (Cleaning protocols, material flow, dedicated lines vs shared equipment, organic integrity maintenance)
+•	Cross-contamination prevention methods (Segregation zones, cleaning logs, allergen/GMO risk controls, physical barriers)
+•	Review of all additives and processing aids (List of inputs used, origin/nature, compliance with organic standards, approvals or non-GMO declarations)
+•	Full packaging and label compliance (Label formats, ingredient declaration, certification logo usage, claims verification)
+•	Worker welfare review (Working conditions, sanitation, protective gear, ethical labor practices, training records)
+•	Environmental impact and sustainability assessment (Waste disposal, water usage, energy practices, emissions, sustainable packaging)
+•	Internal SOPs and document alignment (Operational protocols, documentation formats, version control, training manuals)
+•	Final product traceability and batch tracking (Product flow from input to finished goods, lot coding, batch records, stock register)
+•	Full review of certifications, test reports, and COAs (Lab test reports, Certificate of Analysis, heavy metal/pesticide/GMO analysis, relevant licenses)
+•	Packaging and labeling validation (Print proofs, final label checks, mock samples, label file versions, language compliance)
+•	Certification audit trail (Previous audits, non-compliance closures, corrective action records, internal audit trail)
+•	Verification of all claims and documentation integrity (Cross-verification of statements, documentation gaps, falsification checks)
 
 Learn from the Given text and Generate questions Which seems Specific to the given Product.\n
 Questions present in prompt strictly not be duplicated or there should be no repeated question generation.\n
